@@ -276,6 +276,11 @@ io.on('connection',(socket)=>{
 
   socket.on('getRankings',()=>socket.emit('playersUpdate',publicPlayers()));
 
+  socket.on('adminGetQuestions',()=>{
+    if(!socket.isAdmin) return;
+    socket.emit('adminQuestions', QUIZ_DB);
+  });
+
   socket.on('disconnect',()=>{
     if(socket.playerId&&state.players[socket.playerId]) state.players[socket.playerId].online=false;
     const oId=state.pendingChallenges[socket.playerId];
@@ -285,9 +290,6 @@ io.on('connection',(socket)=>{
 });
 
 app.use(express.static(path.join(__dirname,'public')));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 server.listen(PORT,'0.0.0.0',()=>{
   const nets=os.networkInterfaces();
   console.log('\n========================================');
