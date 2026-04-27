@@ -184,8 +184,25 @@ input:focus{border-color:var(--blue);}
 
   <div class="card">
     <h2>👤 처음 참가하기</h2>
-    <input id="reg-name" type="text" placeholder="이름 입력 (예: 홍길동)" maxlength="10">
-    <input id="reg-team" type="number" placeholder="팀 번호 입력 (1~14)" min="1" max="20">
+    <div style="background:var(--blue-light);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--blue-dark);line-height:1.6">
+      ① 이름과 팀 번호를 입력하세요<br>
+      ② 등록하면 <strong>대결용 고유번호(1~70)</strong>가 자동 부여됩니다<br>
+      ③ 이 번호로 상대방에게 도전하거나 받을 수 있어요!
+    </div>
+    <input id="reg-name" type="text" placeholder="✏️ 이름 입력 (예: 홍길동)" maxlength="10">
+    <div style="position:relative">
+      <select id="reg-team" style="width:100%;padding:14px 16px;border:2px solid #E5E7EB;border-radius:12px;font-size:16px;outline:none;background:#fff;margin-bottom:10px;appearance:none;cursor:pointer">
+        <option value="">👥 내 팀 번호 선택 (1~14팀)</option>
+        <option value="1">1팀</option><option value="2">2팀</option>
+        <option value="3">3팀</option><option value="4">4팀</option>
+        <option value="5">5팀</option><option value="6">6팀</option>
+        <option value="7">7팀</option><option value="8">8팀</option>
+        <option value="9">9팀</option><option value="10">10팀</option>
+        <option value="11">11팀</option><option value="12">12팀</option>
+        <option value="13">13팀</option><option value="14">14팀</option>
+      </select>
+      <span style="position:absolute;right:16px;top:50%;transform:translateY(-60%);pointer-events:none;font-size:18px">▾</span>
+    </div>
     <button class="btn btn-primary" onclick="doRegister()">✅ 등록하고 입장</button>
   </div>
 
@@ -390,6 +407,18 @@ input:focus{border-color:var(--blue);}
   <div class="card">
     <h2>🏆 순위 확인</h2>
     <button class="btn btn-outline" onclick="showScreen('screen-rankings')">순위 화면으로</button>
+  </div>
+
+  <div class="card">
+    <h2>📋 문제 목록 보기</h2>
+    <div class="tab-bar" style="margin-bottom:10px">
+      <button class="tab active" id="qtab-1" onclick="showQTab(1)">⭕ OX (30문제)</button>
+      <button class="tab" id="qtab-2" onclick="showQTab(2)">3️⃣ 3지선다 (25문제)</button>
+      <button class="tab" id="qtab-3" onclick="showQTab(3)">4️⃣ 4지선다 (25문제)</button>
+    </div>
+    <div id="q-list-wrap" style="max-height:400px;overflow-y:auto">
+      <p class="text-gray" style="text-align:center;padding:16px">로딩 중... 잠시만 기다려주세요</p>
+    </div>
   </div>
 
   <div class="divider"></div>
@@ -830,8 +859,11 @@ function renderTeamTable() {
 
 // ── 관리자 ──
 socket.on('adminAuthResult',({success})=>{
-  if (success) { showScreen('screen-admin'); showNotif('✅ 관리자로 로그인 되었습니다.'); }
-  else showNotif('❌ 비밀번호가 틀렸습니다.');
+  if (success) {
+    showScreen('screen-admin');
+    showNotif('✅ 관리자로 로그인 되었습니다.');
+    socket.emit('adminGetQuestions'); // 문제 목록 요청
+  } else showNotif('❌ 비밀번호가 틀렸습니다.');
 });
 function adminResetScores() {
   if (!confirm('점수를 초기화하시겠습니까?\n(참가자 등록은 유지됩니다)')) return;
@@ -840,6 +872,54 @@ function adminResetScores() {
 function adminResetAll() {
   if (!confirm('전체 초기화하시겠습니까?\n모든 데이터가 삭제됩니다.')) return;
   socket.emit('resetAll');
+}
+
+// ── 관리자 문제 목록 ──
+let adminQuizDB = {};
+let currentQTab = 1;
+
+socket.on('adminQuestions', (db) => {
+  adminQuizDB = db;
+  renderQList(currentQTab);
+});
+
+function showQTab(n) {
+  currentQTab = n;
+  [1,2,3].forEach(i => {
+    document.getElementById(`qtab-${i}`)?.classList.toggle('active', i===n);
+  });
+  renderQList(n);
+}
+
+function renderQList(sector) {
+  const wrap = document.getElementById('q-list-wrap');
+  if (!wrap) return;
+  const qs = adminQuizDB[sector];
+  if (!qs || qs.length === 0) {
+    wrap.innerHTML = '<p class="text-gray" style="text-align:center;padding:16px">문제가 없습니다</p>';
+    return;
+  }
+  const sectorColor = ['','var(--green)','var(--gold)','var(--blue)'][sector];
+  const sectorBg = ['','var(--green-light)','var(--gold-light)','var(--blue-light)'][sector];
+  wrap.innerHTML = qs.map((q, i) => `
+    <div style="border:1px solid #E5E7EB;border-radius:12px;padding:12px;margin-bottom:8px;background:#fff">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="background:${sectorBg};color:${sectorColor};border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700">Q${i+1}</span>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;line-height:1.5">${q.q}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        ${q.opts.map(o => `
+          <span style="padding:4px 10px;border-radius:8px;font-size:13px;font-weight:600;
+            background:${o===q.ans?'var(--green-light)':'var(--gray-light)'};
+            color:${o===q.ans?'var(--green)':'var(--gray)'};
+            border:1px solid ${o===q.ans?'var(--green)':'transparent'}">
+            ${o===q.ans?'✅ ':''}${o}
+          </span>`).join('')}
+      </div>
+      <div style="font-size:12px;color:var(--blue-dark);background:var(--blue-light);border-radius:8px;padding:6px 10px">
+        💡 ${q.exp}
+      </div>
+    </div>`).join('');
 }
 function updateAdminStats() {
   const el=document.getElementById('admin-stats');
