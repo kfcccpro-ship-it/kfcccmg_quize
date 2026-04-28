@@ -524,11 +524,36 @@ io.on('connection',(socket)=>{
     Object.values(state.players).forEach(p=>{p.wins=0;p.losses=0;p.correct=0;p.total=0;p.battled=[];p.inBattle=false;});
     io.emit('scoresReset');io.emit('finalStageChanged',{active:false});emitRankings();
   });
+
   socket.on('resetAll',()=>{
     if(!socket.isAdmin)return;
     Object.values(state.battles).forEach(b=>{if(b.timer)clearTimeout(b.timer);});
     state.players={};state.battles={};state.pendingChallenges={};state.nextPlayerId=1;state.finalStage=false;
     io.emit('serverReset');io.emit('finalStageChanged',{active:false});emitRankings();
+  });
+
+  // ── 재시작 (카운트다운 후 전체 초기화 + 참가자 등록화면으로 이동) ──
+  socket.on('adminRestart',({label})=>{
+    if(!socket.isAdmin)return;
+    const tag = label||'재시작';
+    // 3초 카운트다운 공지 후 초기화
+    io.emit('restartCountdown',{label:tag, sec:3});
+    let cnt=3;
+    const tick=setInterval(()=>{
+      cnt--;
+      if(cnt>0){
+        io.emit('restartCountdown',{label:tag, sec:cnt});
+      } else {
+        clearInterval(tick);
+        // 전체 상태 초기화
+        Object.values(state.battles).forEach(b=>{if(b.timer)clearTimeout(b.timer);});
+        state.players={};state.battles={};state.pendingChallenges={};
+        state.nextPlayerId=1;state.finalStage=false;
+        io.emit('serverRestart',{label:tag});
+        io.emit('finalStageChanged',{active:false});
+        emitRankings();
+      }
+    },1000);
   });
   socket.on('disconnect',()=>{
     if(socket.playerId&&state.players[socket.playerId])state.players[socket.playerId].online=false;
