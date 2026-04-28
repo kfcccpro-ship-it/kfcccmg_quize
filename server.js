@@ -276,7 +276,10 @@ let QUIZ_DB = {
 };
 
 const SECTOR_NAMES = {1:'섹터1 OX퀴즈',2:'섹터2 3지선다',3:'섹터3 4지선다'};
-let state = {players:{},battles:{},nextPlayerId:1,pendingChallenges:{}};
+let state = {
+  players:{}, battles:{}, nextPlayerId:1, pendingChallenges:{},
+  finalStage: false   // 막판뒤집기 모드
+};
 
 function getSocket(sid){return io.sockets.sockets.get(sid);}
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -284,6 +287,10 @@ function randomSector(){return Math.floor(Math.random()*3)+1;}
 function selectQuestions(sector,count){return shuffle(QUIZ_DB[sector]).slice(0,Math.min(count,QUIZ_DB[sector].length));}
 function publicPlayers(){return Object.values(state.players).map(p=>({id:p.id,name:p.name,team:p.team,wins:p.wins,losses:p.losses,correct:p.correct,total:p.total,online:p.online,battleCount:p.battled.length,inBattle:p.inBattle}));}
 function emitRankings(){io.emit('playersUpdate',publicPlayers());}
+function emitFinalStage(){io.emit('finalStageChanged',{active:state.finalStage});}
+function emitSystemState(socket){
+  (socket||io).emit('systemState',{finalStage:state.finalStage});
+}
 
 function startBattle(p1Id,p2Id){
   const sector=randomSector();
@@ -330,9 +337,25 @@ function endBattle(battleId){
   const [p1,p2]=battle.players;
   const s1=battle.scores[p1],s2=battle.scores[p2];
   const winner=s1>s2?p1:s2>s1?p2:null;
-  if(winner){state.players[winner].wins++;state.players[winner===p1?p2:p1].losses++;}
-  battle.players.forEach(pid=>{const p=state.players[pid];p.total+=battle.questions.length;p.battled.push(pid===p1?p2:p1);p.inBattle=false;});
-  battle.players.forEach(pid=>getSocket(state.players[pid]?.socketId)?.emit('battleEnd',{winner,finalScores:battle.scores,p1Id:p1,p2Id:p2,p1Name:state.players[p1].name,p2Name:state.players[p2].name,yourId:pid,sector:battle.sector,sectorName:SECTOR_NAMES[battle.sector]}));
+  const multi = state.finalStage ? 3 : 1;  // 막판뒤집기 3배
+
+  if(winner){
+    state.players[winner].wins += multi;
+    state.players[winner===p1?p2:p1].losses += multi;
+  }
+  battle.players.forEach(pid=>{
+    const p=state.players[pid];
+    p.total+=battle.questions.length;
+    p.battled.push(pid===p1?p2:p1);
+    p.inBattle=false;
+  });
+  battle.players.forEach(pid=>getSocket(state.players[pid]?.socketId)?.emit('battleEnd',{
+    winner,finalScores:battle.scores,
+    p1Id:p1,p2Id:p2,
+    p1Name:state.players[p1].name,p2Name:state.players[p2].name,
+    yourId:pid,sector:battle.sector,sectorName:SECTOR_NAMES[battle.sector],
+    finalStage:state.finalStage,winMulti:multi
+  }));
   emitRankings();
 }
 
@@ -342,11 +365,15 @@ io.on('connection',(socket)=>{
     state.players[id]={id,name:name.trim(),team:parseInt(team),socketId:socket.id,wins:0,losses:0,correct:0,total:0,battled:[],online:true,inBattle:false};
     socket.playerId=id;
     socket.emit('registered',{id,player:state.players[id]});
+    socket.emit('systemState',{finalStage:state.finalStage});
     emitRankings();
   });
   socket.on('reconnectPlayer',(id)=>{
     const p=state.players[id];
-    if(p){p.socketId=socket.id;p.online=true;socket.playerId=id;socket.emit('reconnected',{player:p});emitRankings();}
+    if(p){p.socketId=socket.id;p.online=true;socket.playerId=id;
+      socket.emit('reconnected',{player:p});
+      socket.emit('systemState',{finalStage:state.finalStage});
+      emitRankings();}
     else socket.emit('reconnectFailed');
   });
   socket.on('challenge',(oppId)=>{
@@ -368,9 +395,29 @@ io.on('connection',(socket)=>{
     startBattle(cId,socket.playerId);
   });
   socket.on('rejectChallenge',(cId)=>{
+    const refuser = state.players[socket.playerId];
+    const challenger = state.players[cId];
     delete state.pendingChallenges[cId];
-    getSocket(state.players[cId]?.socketId)?.emit('challengeRejected',{opponentName:state.players[socket.playerId]?.name});
+
+    if(state.finalStage && refuser && challenger){
+      // 막판뒤집기: 거부 = 자동 패배 + 총 승수×3 차감
+      const penalty = refuser.wins * 3;
+      refuser.wins = Math.max(0, refuser.wins - penalty);
+      refuser.losses += 3;
+      const msg = `⚡ 막판뒤집기 거부 패널티! ${refuser.name}의 승수 ${penalty}점 차감`;
+      io.emit('systemAnnounce', msg);
+      getSocket(refuser.socketId)?.emit('finalStagePenalty', {
+        msg:`❌ 막판뒤집기 거부로 승수 ${penalty}점이 차감되었습니다!`,
+        newWins: refuser.wins
+      });
+      emitRankings();
+    }
+    getSocket(challenger?.socketId)?.emit('challengeRejected',{
+      opponentName: refuser?.name,
+      finalStageAuto: state.finalStage
+    });
   });
+
   socket.on('cancelChallenge',()=>{
     const oId=state.pendingChallenges[socket.playerId];
     if(oId){getSocket(state.players[oId]?.socketId)?.emit('challengeCancelled');delete state.pendingChallenges[socket.playerId];}
@@ -438,18 +485,50 @@ io.on('connection',(socket)=>{
   });
 
   socket.on('getRankings',()=>socket.emit('playersUpdate',publicPlayers()));
+  socket.on('getSystemState',()=>emitSystemState(socket));
+
+  // 막판뒤집기 모드 ON/OFF
+  socket.on('adminSetFinalStage',(active)=>{
+    if(!socket.isAdmin)return;
+    state.finalStage=!!active;
+    const msg = active
+      ? '🔥 막판뒤집기 스테이지 시작! 승수 ×3 적용!'
+      : '✅ 막판뒤집기 스테이지 종료. 일반 모드로 복귀.';
+    io.emit('systemAnnounce', msg);
+    emitFinalStage();
+    socket.emit('adminMsg', msg);
+  });
+
+  // 관리자 수동 패널티 (거부자 이름 입력)
+  socket.on('adminPenalizeRefuser',(playerName)=>{
+    if(!socket.isAdmin)return;
+    const p = Object.values(state.players).find(p=>p.name===playerName.trim());
+    if(!p){socket.emit('adminMsg',`❌ "${playerName}" 이름의 참가자를 찾을 수 없습니다.`);return;}
+    const penalty = p.wins * 3;
+    p.wins = Math.max(0, p.wins - penalty);
+    p.losses += 3;
+    const msg = `⚡ [수동패널티] ${p.name}(${p.id}번) — 승수 ${penalty}점 차감, 패배 3추가`;
+    io.emit('systemAnnounce', msg);
+    getSocket(p.socketId)?.emit('finalStagePenalty',{
+      msg:`❌ 관리자가 막판뒤집기 거부 패널티를 적용했습니다. 승수 ${penalty}점 차감.`,
+      newWins: p.wins
+    });
+    emitRankings();
+    socket.emit('adminMsg', msg);
+  });
+
   socket.on('resetScores',()=>{
     if(!socket.isAdmin)return;
     Object.values(state.battles).forEach(b=>{if(b.timer)clearTimeout(b.timer);});
-    state.battles={};state.pendingChallenges={};
+    state.battles={};state.pendingChallenges={};state.finalStage=false;
     Object.values(state.players).forEach(p=>{p.wins=0;p.losses=0;p.correct=0;p.total=0;p.battled=[];p.inBattle=false;});
-    io.emit('scoresReset');emitRankings();
+    io.emit('scoresReset');io.emit('finalStageChanged',{active:false});emitRankings();
   });
   socket.on('resetAll',()=>{
     if(!socket.isAdmin)return;
     Object.values(state.battles).forEach(b=>{if(b.timer)clearTimeout(b.timer);});
-    state.players={};state.battles={};state.pendingChallenges={};state.nextPlayerId=1;
-    io.emit('serverReset');emitRankings();
+    state.players={};state.battles={};state.pendingChallenges={};state.nextPlayerId=1;state.finalStage=false;
+    io.emit('serverReset');io.emit('finalStageChanged',{active:false});emitRankings();
   });
   socket.on('disconnect',()=>{
     if(socket.playerId&&state.players[socket.playerId])state.players[socket.playerId].online=false;
