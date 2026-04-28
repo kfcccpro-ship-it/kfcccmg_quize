@@ -6,107 +6,89 @@
 <title>🏦 새마을금고 퀴즈 대결</title>
 <script src="/socket.io/socket.io.js"></script>
 <style>
-:root {
-  --blue:#1A56DB; --blue-dark:#1040A8; --blue-light:#EBF2FF;
-  --green:#047857; --green-light:#D1FAE5;
-  --red:#DC2626; --red-light:#FEE2E2;
-  --gold:#D97706; --gold-light:#FEF3C7;
-  --purple:#7C3AED; --purple-light:#EDE9FE;
-  --gray:#6B7280; --gray-light:#F3F4F6;
-  --bg:#F0F4F8; --card:#fff; --text:#111827; --radius:16px;
+:root{
+  --blue:#1A56DB;--blue-dark:#1040A8;--blue-light:#EBF2FF;
+  --green:#047857;--green-light:#D1FAE5;
+  --red:#DC2626;--red-light:#FEE2E2;
+  --gold:#D97706;--gold-light:#FEF3C7;
+  --purple:#7C3AED;--purple-light:#EDE9FE;
+  --gray:#6B7280;--gray-light:#F3F4F6;
+  --bg:#F0F4F8;--card:#fff;--text:#111827;--radius:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-
-/* ── 화면 ── */
 .screen{display:none;min-height:100vh;padding:14px;flex-direction:column;}
 .screen.active{display:flex;}
-
-/* ── 헤더 ── */
 .header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;
   padding:14px 16px;text-align:center;border-radius:var(--radius);margin-bottom:14px;}
 .header h1{font-size:19px;font-weight:800;}
 .header .sub{font-size:12px;opacity:.8;margin-top:3px;}
-
-/* ── 카드 ── */
-.card{background:var(--card);border-radius:var(--radius);padding:18px;
-  margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
 .card h2{font-size:15px;font-weight:700;margin-bottom:12px;color:var(--blue-dark);}
-
-/* ── 입력 ── */
-input{width:100%;padding:14px 16px;border:2px solid #E5E7EB;border-radius:12px;
-  font-size:16px;outline:none;transition:border-color .2s;margin-bottom:10px;}
-input:focus{border-color:var(--blue);}
-
-/* ── 버튼 ── */
-.btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:16px;
-  font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:8px;}
+input,textarea{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;font-size:15px;outline:none;transition:border-color .2s;margin-bottom:10px;font-family:inherit;}
+input:focus,textarea:focus{border-color:var(--blue);}
+textarea{resize:vertical;min-height:60px;}
+select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;font-size:15px;outline:none;background:#fff;margin-bottom:10px;appearance:none;cursor:pointer;}
+.btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:8px;}
 .btn:active{transform:scale(.98);}
 .btn-primary{background:var(--blue);color:#fff;}
-.btn-primary:active{background:var(--blue-dark);}
 .btn-success{background:var(--green);color:#fff;}
 .btn-danger{background:var(--red);color:#fff;}
 .btn-gold{background:var(--gold);color:#fff;}
 .btn-outline{background:transparent;color:var(--blue);border:2px solid var(--blue);}
 .btn-gray{background:var(--gray-light);color:var(--gray);}
-.btn-sm{padding:10px 18px;width:auto;font-size:14px;border-radius:10px;margin-bottom:0;}
-
-/* ── 내 배지 ── */
-.my-badge{background:linear-gradient(135deg,var(--blue),var(--blue-dark));
-  color:#fff;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:12px;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-sm{padding:8px 14px;width:auto;font-size:13px;border-radius:10px;margin-bottom:0;}
+.my-badge{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:12px;}
 .my-badge .num{font-size:60px;font-weight:900;line-height:1;}
 .my-badge .name{font-size:20px;font-weight:700;margin-top:4px;}
-.my-badge .team{font-size:14px;opacity:.8;margin-top:2px;}
-
-/* ── 섹터 뱃지 ── */
-.sector-badge{display:inline-flex;align-items:center;gap:6px;
-  padding:6px 14px;border-radius:20px;font-size:14px;font-weight:700;}
+.my-badge .team{font-size:14px;opacity:.8;}
+.sector-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;}
 .s1{background:var(--green-light);color:var(--green);}
 .s2{background:var(--gold-light);color:var(--gold);}
 .s3{background:var(--blue-light);color:var(--blue);}
-
-/* ── 랜덤 섹터 공개 애니메이션 ── */
-.sector-reveal{
-  background:linear-gradient(135deg,#1e1b4b,#312e81);
-  color:#fff;border-radius:var(--radius);padding:24px;
-  text-align:center;margin-bottom:12px;
-  animation:revealPop .5s cubic-bezier(.175,.885,.32,1.275);
-}
+.sector-reveal{background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:12px;animation:revealPop .5s cubic-bezier(.175,.885,.32,1.275);}
 @keyframes revealPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
-.sector-reveal .reveal-label{font-size:12px;opacity:.7;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
-.sector-reveal .reveal-name{font-size:26px;font-weight:900;margin-bottom:4px;}
-.sector-reveal .reveal-icon{font-size:48px;margin-bottom:8px;}
-
-/* ── 타이머 ── */
-.timer-bar-wrap{width:100%;height:10px;background:var(--gray-light);border-radius:5px;margin-bottom:14px;overflow:hidden;}
+.sector-reveal .reveal-label{font-size:12px;opacity:.7;letter-spacing:2px;margin-bottom:8px;}
+.sector-reveal .reveal-icon{font-size:52px;margin-bottom:8px;}
+.sector-reveal .reveal-name{font-size:26px;font-weight:900;}
+.timer-bar-wrap{width:100%;height:10px;background:var(--gray-light);border-radius:5px;margin-bottom:12px;overflow:hidden;}
 .timer-bar{height:100%;border-radius:5px;background:var(--blue);transition:width .1s linear,background .3s;}
-.timer-num{text-align:center;font-size:32px;font-weight:900;margin-bottom:14px;}
-
-/* ── 문제 ── */
-.question-text{font-size:17px;font-weight:700;line-height:1.65;margin-bottom:20px;text-align:center;word-break:keep-all;}
-.option-btn{width:100%;padding:17px 16px;margin-bottom:10px;border:3px solid #E5E7EB;
-  border-radius:14px;background:#fff;font-size:15px;font-weight:600;cursor:pointer;
-  transition:all .15s;text-align:left;display:flex;align-items:center;gap:12px;}
-.option-btn:active{transform:scale(.98);}
-.opt-label{width:32px;height:32px;border-radius:50%;background:var(--gray-light);
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.timer-num{text-align:center;font-size:34px;font-weight:900;margin-bottom:12px;}
+.question-text{font-size:17px;font-weight:700;line-height:1.65;margin-bottom:18px;text-align:center;word-break:keep-all;}
+.option-btn{width:100%;padding:16px;margin-bottom:10px;border:3px solid #E5E7EB;border-radius:14px;background:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;gap:12px;}
+.opt-label{width:32px;height:32px;border-radius:50%;background:var(--gray-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
 .option-btn.selected{border-color:var(--blue);background:var(--blue-light);}
 .option-btn.correct{border-color:var(--green);background:var(--green-light);}
 .option-btn.wrong{border-color:var(--red);background:var(--red-light);}
-.option-btn.ox{font-size:28px;font-weight:900;justify-content:center;height:80px;}
+.option-btn.ox{font-size:26px;font-weight:900;justify-content:center;height:76px;}
 .option-btn.ox .opt-label{display:none;}
-.option-btn:disabled{cursor:not-allowed;opacity:.65;}
-
-/* ── 스코어 ── */
-.score-board{display:flex;gap:8px;margin-bottom:14px;align-items:center;}
+.option-btn:disabled{cursor:not-allowed;opacity:.6;}
+.score-board{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
 .score-card{flex:1;background:#fff;border-radius:12px;padding:12px;text-align:center;border:2px solid transparent;}
 .score-card.me{border-color:var(--blue);}
 .score-card.leading{background:var(--blue-light);}
 .score-name{font-size:12px;color:var(--gray);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .score-num{font-size:34px;font-weight:900;}
 .vs-text{font-size:18px;font-weight:900;color:var(--gray);flex-shrink:0;}
-
-/* ── 순위 ── */
+/* 배틀 결과 강화 */
+.result-big{font-size:72px;text-align:center;margin-bottom:8px;animation:bounceIn .6s ease;}
+@keyframes bounceIn{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.result-title{font-size:26px;font-weight:900;text-align:center;margin-bottom:4px;}
+.result-sub{font-size:14px;color:var(--gray);text-align:center;margin-bottom:16px;}
+.win-banner{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:12px;animation:revealPop .5s ease;}
+.lose-banner{background:linear-gradient(135deg,#6B7280,#4B5563);color:#fff;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:12px;}
+.draw-banner{background:linear-gradient(135deg,var(--purple),#5B21B6);color:#fff;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:12px;}
+.explanation{background:var(--blue-light);border-radius:12px;padding:14px;font-size:14px;line-height:1.65;margin-bottom:12px;color:var(--blue-dark);word-break:keep-all;}
+/* 아이스브레이킹 메시지 */
+.ice-msg{background:linear-gradient(135deg,#EC4899,#8B5CF6);color:#fff;border-radius:12px;padding:14px;font-size:14px;font-weight:600;text-align:center;margin-bottom:10px;animation:revealPop .5s ease;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.stat-box{background:var(--gray-light);border-radius:10px;padding:10px;text-align:center;}
+.stat-num{font-size:22px;font-weight:900;color:var(--blue);}
+.stat-label{font-size:11px;color:var(--gray);}
+.tab-bar{display:flex;gap:6px;margin-bottom:12px;}
+.tab{flex:1;padding:10px;border:none;border-radius:10px;background:var(--gray-light);color:var(--gray);font-size:13px;font-weight:600;cursor:pointer;}
+.tab.active{background:var(--blue);color:#fff;}
 .rank-table{width:100%;border-collapse:collapse;}
 .rank-table th{background:var(--blue);color:#fff;padding:10px 6px;font-size:12px;text-align:center;}
 .rank-table td{padding:10px 6px;font-size:13px;text-align:center;border-bottom:1px solid var(--gray-light);}
@@ -115,103 +97,150 @@ input:focus{border-color:var(--blue);}
 .rank-2 td{background:#F3F4F6!important;font-weight:600;}
 .rank-3 td{background:#FEF9C3!important;font-weight:600;}
 .online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.on{background:var(--green);} .off{background:var(--gray);}
-
-/* ── 탭 ── */
-.tab-bar{display:flex;gap:6px;margin-bottom:12px;}
-.tab{flex:1;padding:10px;border:none;border-radius:10px;background:var(--gray-light);
-  color:var(--gray);font-size:13px;font-weight:600;cursor:pointer;}
-.tab.active{background:var(--blue);color:#fff;}
-
-/* ── 알림 ── */
-.notif{position:fixed;top:20px;left:50%;transform:translateX(-50%);
-  background:#1F2937;color:#fff;padding:12px 20px;border-radius:20px;
-  font-size:14px;font-weight:600;z-index:9999;max-width:90vw;text-align:center;
-  animation:slideIn .3s ease;}
+.on{background:var(--green);}.off{background:var(--gray);}
+.notif{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:12px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:9999;max-width:90vw;text-align:center;animation:slideIn .3s ease;}
 @keyframes slideIn{from{top:-50px;opacity:0}to{top:20px;opacity:1}}
-
-/* ── 도전 오버레이 ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
-  z-index:100;justify-content:center;align-items:center;padding:20px;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;justify-content:center;align-items:center;padding:20px;}
 .overlay.show{display:flex;}
 .overlay-card{background:#fff;border-radius:20px;padding:28px;text-align:center;width:100%;max-width:340px;}
-.overlay-card h2{font-size:20px;font-weight:700;margin-bottom:8px;}
 .challenger-num{font-size:52px;font-weight:900;color:var(--blue);}
 .challenger-name{font-size:18px;font-weight:700;}
-
-/* ── 결과 ── */
-.result-icon{font-size:68px;text-align:center;margin-bottom:8px;}
-.result-title{font-size:24px;font-weight:900;text-align:center;margin-bottom:4px;}
-.result-sub{font-size:14px;color:var(--gray);text-align:center;margin-bottom:18px;}
-.explanation{background:var(--blue-light);border-radius:12px;padding:14px;
-  font-size:14px;line-height:1.65;margin-bottom:12px;color:var(--blue-dark);word-break:keep-all;}
-
-/* ── 통계 그리드 ── */
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.stat-box{background:var(--gray-light);border-radius:10px;padding:10px;text-align:center;}
-.stat-num{font-size:22px;font-weight:900;color:var(--blue);}
-.stat-label{font-size:11px;color:var(--gray);}
-
-/* ── 유틸 ── */
 .flex-row{display:flex;gap:8px;}
-.text-center{text-align:center;}
-.text-gray{color:var(--gray);font-size:14px;}
-.mt8{margin-top:8px;} .mt16{margin-top:16px;}
+.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mt16{margin-top:16px;}
 .divider{height:1px;background:var(--gray-light);margin:12px 0;}
 .scroll-x{overflow-x:auto;}
-.fw700{font-weight:700;}
+.text-gray{color:var(--gray);font-size:14px;}
+.text-center{text-align:center;}
+.random-notice{background:linear-gradient(135deg,var(--purple),#5B21B6);color:#fff;border-radius:12px;padding:12px 16px;text-align:center;font-size:13px;margin-bottom:12px;font-weight:600;}
+/* 관리자 문제 카드 */
+.q-card{border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:10px;background:#fff;position:relative;}
+.q-card .q-num{background:var(--blue);color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;display:inline-block;margin-bottom:8px;}
+.q-card .q-text{font-size:14px;font-weight:700;margin-bottom:8px;line-height:1.5;}
+.q-card .q-opts{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
 
-/* ── 랜덤 섹터 알림 박스 ── */
-.random-notice{background:linear-gradient(135deg,var(--purple),#5B21B6);
-  color:#fff;border-radius:12px;padding:12px 16px;text-align:center;
-  font-size:13px;margin-bottom:12px;font-weight:600;}
+/* ── 관리자 대시보드 (PC 투사용) ── */
+/* 막판뒤집기 배너 */
+.final-stage-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,#EF4444,#B91C1C,#EF4444);background-size:200%;animation:bannerScroll 3s linear infinite;padding:11px 16px;text-align:center;color:#fff;font-size:15px;font-weight:800;letter-spacing:1px;box-shadow:0 4px 20px rgba(239,68,68,.5);}
+@keyframes bannerScroll{0%{background-position:0%}100%{background-position:200%}}
+.final-stage-banner.show{display:block;}
+.has-banner{padding-top:52px!important;}
+.penalty-popup{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9000;display:none;justify-content:center;align-items:center;padding:20px;}
+.penalty-popup.show{display:flex;}
+.penalty-box{background:linear-gradient(135deg,#7F1D1D,#991B1B);border:3px solid #EF4444;border-radius:20px;padding:32px;text-align:center;max-width:300px;width:100%;animation:revealPop .4s ease;}
+.admin-nav-tab{background:transparent;border:none;color:rgba(255,255,255,.5);padding:14px 18px;font-size:14px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.admin-nav-tab:hover{color:rgba(255,255,255,.8);}
+.admin-nav-tab.active{color:#fff;border-bottom-color:#3B82F6;}
+.kpi-card{background:#1E293B;border-radius:14px;padding:18px;text-align:center;border:1px solid rgba(255,255,255,.07);transition:transform .2s;}
+.kpi-card:hover{transform:translateY(-2px);}
+.kpi-icon{font-size:22px;margin-bottom:6px;}
+.kpi-num{font-size:36px;font-weight:900;color:#fff;line-height:1;}
+.kpi-label{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:600;}
+.dash-panel{background:#1E293B;border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,.07);}
+.dash-panel-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;color:#fff;font-size:14px;font-weight:700;}
+.live-badge{background:#EF4444;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:10px;letter-spacing:1px;animation:pulse 2s infinite;}
+.admin-sort-btn{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
+.admin-sort-btn.active{background:#3B82F6;color:#fff;}
+.rank-row{display:flex;align-items:center;padding:10px 12px;border-radius:10px;margin-bottom:5px;transition:background .2s;}
+.rank-row:hover{background:rgba(255,255,255,.05);}
+.rank-row.top1{background:linear-gradient(90deg,rgba(245,158,11,.18),transparent);border-left:3px solid #F59E0B;}
+.rank-row.top2{background:linear-gradient(90deg,rgba(148,163,184,.12),transparent);border-left:3px solid #94A3B8;}
+.rank-row.top3{background:linear-gradient(90deg,rgba(217,119,6,.12),transparent);border-left:3px solid #D97706;}
+.rank-num{width:36px;text-align:center;font-size:18px;font-weight:900;flex-shrink:0;}
+.rank-name{flex:1;color:#fff;font-size:14px;font-weight:700;margin-left:8px;}
+.rank-team-tag{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:11px;padding:2px 8px;border-radius:6px;margin-left:6px;flex-shrink:0;}
+.rank-stats{display:flex;gap:12px;align-items:center;flex-shrink:0;}
+.rank-stat{text-align:center;min-width:38px;}
+.rank-stat .val{font-size:15px;font-weight:800;color:#fff;display:block;}
+.rank-stat .lbl{font-size:10px;color:rgba(255,255,255,.4);display:block;}
+.rank-bar-wrap{width:70px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-left:8px;flex-shrink:0;}
+.rank-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#3B82F6,#8B5CF6);transition:width .6s ease;}
+.team-rank-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.team-rank-row:last-child{border-bottom:none;}
+.feed-card{background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);animation:feedIn .4s ease;}
+@keyframes feedIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.q-card-dark{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:8px;}
+.q-card-dark .q-text{color:#fff;font-size:14px;font-weight:700;margin-bottom:8px;line-height:1.5;}
+.q-card-dark .q-exp-dark{font-size:12px;color:rgba(255,255,255,.5);background:rgba(59,130,246,.1);border-radius:8px;padding:6px 10px;margin-bottom:8px;}
+.upload-area-dark{border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.03);}
+.upload-area-dark:hover{border-color:#3B82F6;background:rgba(59,130,246,.08);}
+.admin-msg-dark{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ADE80;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px;}
+.sector-tab-btn{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all .2s;margin-bottom:6px;}
+.sector-tab-btn.active{background:#3B82F6;border-color:#3B82F6;color:#fff;}
+.battler-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.8);font-size:13px;}
+.battler-dot{width:8px;height:8px;border-radius:50%;background:#F59E0B;animation:pulse 1s infinite;margin-right:8px;flex-shrink:0;}
+.team-detail-card{background:rgba(255,255,255,.04);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.07);}
+.team-detail-hdr{font-size:14px;font-weight:800;color:#fff;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);}
+.team-member-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;color:rgba(255,255,255,.7);}
 
-/* ── 펄스 애니메이션 ── */
+.q-opt-tag{padding:3px 10px;border-radius:8px;font-size:12px;font-weight:600;}
+.q-opt-ans{background:var(--green-light);color:var(--green);border:1px solid var(--green);}
+.q-opt-normal{background:var(--gray-light);color:var(--gray);}
+.q-exp{font-size:12px;color:var(--blue-dark);background:var(--blue-light);border-radius:8px;padding:6px 10px;margin-bottom:8px;}
+.q-actions{display:flex;gap:6px;}
+/* 편집 모달 */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto;}
+.modal.show{display:flex;}
+.modal-box{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:480px;margin:auto;}
+.modal-box h3{font-size:16px;font-weight:800;margin-bottom:16px;color:var(--blue-dark);}
+.label{font-size:13px;font-weight:600;color:var(--gray);margin-bottom:4px;}
+/* 업로드 영역 */
+.upload-area{border:3px dashed #CBD5E1;border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-light);}
+.upload-area:hover{border-color:var(--blue);background:var(--blue-light);}
+.upload-area input[type=file]{display:none;}
+.admin-msg{background:var(--green-light);color:var(--green);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:10px;display:none;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.pulse{animation:pulse .5s ease-in-out infinite;}
+.pulse{animation:pulse .5s infinite;}
 </style>
 </head>
 <body>
 
-<!-- ============================
-     화면 1: 시작 / 등록
-============================= -->
-<div id="screen-welcome" class="screen active">
-  <div class="header">
-    <h1>🏦 새마을금고 퀴즈 대결</h1>
-    <div class="sub">신입직원 교육 퀴즈 배틀 시스템</div>
-  </div>
+<!-- 막판뒤집기 전체 배너 -->
+<div class="final-stage-banner" id="final-stage-banner">
+  🔥 막판뒤집기 스테이지 가동 중! — 모든 승리 ×3 배점 적용! 거부 = 즉시 패배 + 패널티! 🔥
+</div>
 
+<!-- 패널티 팝업 -->
+<div class="penalty-popup" id="penalty-popup">
+  <div class="penalty-box">
+    <div style="font-size:52px;margin-bottom:12px">💀</div>
+    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:8px">패널티 적용!</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.8);margin-bottom:20px" id="penalty-msg">승수가 차감되었습니다.</div>
+    <button class="btn btn-danger" onclick="document.getElementById('penalty-popup').classList.remove('show')" style="max-width:200px">확인</button>
+  </div>
+</div>
+
+<!-- 전체 공지 팝업 -->
+<div id="announce-wrap" style="position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:800;pointer-events:none;width:90%;max-width:400px"></div>
+
+<!-- 화면1: 시작/등록 -->
+<div id="screen-welcome" class="screen active">
+  <div class="header"><h1>🏦 새마을금고 퀴즈 대결</h1><div class="sub">신입직원 교육 퀴즈 배틀 시스템</div></div>
   <div class="card">
     <h2>👤 처음 참가하기</h2>
-    <div style="background:var(--blue-light);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--blue-dark);line-height:1.6">
+    <div style="background:var(--blue-light);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--blue-dark);line-height:1.7">
       ① 이름과 팀 번호를 입력하세요<br>
       ② 등록하면 <strong>대결용 고유번호(1~70)</strong>가 자동 부여됩니다<br>
       ③ 이 번호로 상대방에게 도전하거나 받을 수 있어요!
     </div>
     <input id="reg-name" type="text" placeholder="✏️ 이름 입력 (예: 홍길동)" maxlength="10">
     <div style="position:relative">
-      <select id="reg-team" style="width:100%;padding:14px 16px;border:2px solid #E5E7EB;border-radius:12px;font-size:16px;outline:none;background:#fff;margin-bottom:10px;appearance:none;cursor:pointer">
+      <select id="reg-team">
         <option value="">👥 내 팀 번호 선택 (1~14팀)</option>
-        <option value="1">1팀</option><option value="2">2팀</option>
-        <option value="3">3팀</option><option value="4">4팀</option>
-        <option value="5">5팀</option><option value="6">6팀</option>
-        <option value="7">7팀</option><option value="8">8팀</option>
-        <option value="9">9팀</option><option value="10">10팀</option>
-        <option value="11">11팀</option><option value="12">12팀</option>
+        <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option>
+        <option value="4">4팀</option><option value="5">5팀</option><option value="6">6팀</option>
+        <option value="7">7팀</option><option value="8">8팀</option><option value="9">9팀</option>
+        <option value="10">10팀</option><option value="11">11팀</option><option value="12">12팀</option>
         <option value="13">13팀</option><option value="14">14팀</option>
       </select>
-      <span style="position:absolute;right:16px;top:50%;transform:translateY(-60%);pointer-events:none;font-size:18px">▾</span>
+      <span style="position:absolute;right:16px;top:50%;transform:translateY(-60%);pointer-events:none">▾</span>
     </div>
     <button class="btn btn-primary" onclick="doRegister()">✅ 등록하고 입장</button>
   </div>
-
   <div class="card">
     <h2>🔄 재접속 (이미 등록한 경우)</h2>
     <input id="reconnect-id" type="number" placeholder="내 번호 입력">
     <button class="btn btn-outline" onclick="doReconnect()">재접속하기</button>
   </div>
-
   <div class="card">
     <h2>🔐 관리자 입장</h2>
     <input id="admin-pw" type="password" placeholder="관리자 비밀번호">
@@ -219,73 +248,55 @@ input:focus{border-color:var(--blue);}
   </div>
 </div>
 
-<!-- ============================
-     화면 1-2: 등록 완료 안내
-============================= -->
+<!-- 화면1-2: 등록 완료 -->
 <div id="screen-registered" class="screen">
-  <div class="header">
-    <h1>🎉 등록 완료!</h1>
-    <div class="sub">아래 번호를 꼭 기억하세요!</div>
-  </div>
-
-  <div style="background:linear-gradient(135deg,var(--blue),var(--blue-dark));
-    border-radius:var(--radius);padding:28px;text-align:center;margin-bottom:12px;color:#fff">
-    <div style="font-size:15px;opacity:.85;margin-bottom:4px">내 이름</div>
-    <div style="font-size:26px;font-weight:800;margin-bottom:16px" id="reg-done-name">-</div>
-    <div style="font-size:15px;opacity:.85;margin-bottom:4px">내 팀</div>
-    <div style="font-size:22px;font-weight:700;margin-bottom:20px" id="reg-done-team">-팀</div>
-    <div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:16px;margin-bottom:8px">
+  <div class="header"><h1>🎉 등록 완료!</h1><div class="sub">아래 번호를 꼭 기억하세요!</div></div>
+  <div style="background:linear-gradient(135deg,var(--blue),var(--blue-dark));border-radius:var(--radius);padding:28px;text-align:center;margin-bottom:12px;color:#fff">
+    <div style="font-size:14px;opacity:.8;margin-bottom:2px">내 이름</div>
+    <div style="font-size:24px;font-weight:800;margin-bottom:14px" id="reg-done-name">-</div>
+    <div style="font-size:14px;opacity:.8;margin-bottom:2px">내 팀</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:20px" id="reg-done-team">-팀</div>
+    <div style="background:rgba(255,255,255,.18);border-radius:14px;padding:18px">
       <div style="font-size:14px;opacity:.85;margin-bottom:6px">⚔️ 내 대결 번호</div>
-      <div style="font-size:80px;font-weight:900;line-height:1" id="reg-done-num">-</div>
+      <div style="font-size:90px;font-weight:900;line-height:1;animation:bounceIn .6s ease" id="reg-done-num">-</div>
       <div style="font-size:13px;opacity:.8;margin-top:8px">상대방에게 이 번호를 알려주세요!</div>
     </div>
   </div>
-
-  <div class="card" style="text-align:center">
-    <div style="font-size:22px;margin-bottom:8px">📌 이렇게 사용해요</div>
-    <div style="font-size:14px;color:var(--gray);line-height:1.9;text-align:left">
+  <div class="card">
+    <div style="font-size:20px;margin-bottom:8px;text-align:center">📌 이렇게 사용해요</div>
+    <div style="font-size:14px;color:var(--gray);line-height:1.9">
       ① 직접 만난 상대방에게 <strong>내 번호</strong>를 알려주세요<br>
       ② 상대방 번호를 물어보세요<br>
-      ③ 대결 신청 버튼 → 상대방 번호 입력 → 도전!
+      ③ 대결 신청 버튼 → 상대방 번호 입력 → 도전!<br>
+      ④ 문제 유형은 시작 순간 <strong>랜덤</strong>으로 결정돼요
     </div>
   </div>
-
   <button class="btn btn-primary" onclick="showScreen('screen-lobby')">🏠 로비로 입장하기</button>
 </div>
 
-<!-- ============================
-     화면 2: 로비
-============================= -->
+<!-- 화면2: 로비 -->
 <div id="screen-lobby" class="screen">
-  <div class="header">
-    <h1>🏦 새마을금고 퀴즈 대결</h1>
-    <div class="sub">직접 만나서 대결하세요!</div>
-  </div>
-
+  <div class="header"><h1>🏦 새마을금고 퀴즈 대결</h1><div class="sub">직접 만나서 대결하세요!</div></div>
   <div class="my-badge">
     <div class="num" id="my-number">-</div>
     <div class="name" id="my-name">-</div>
     <div class="team" id="my-team">-팀</div>
   </div>
-
-  <div class="random-notice">
-    🎲 문제 유형은 대결 시작 순간 <strong>랜덤</strong> 결정됩니다!<br>
-    <span style="opacity:.85;font-size:12px">OX · 3지선다 · 4지선다 중 하나가 나와요</span>
+  <div class="random-notice">🎲 문제 유형은 대결 시작 순간 <strong>랜덤</strong> 결정!<br><span style="opacity:.85;font-size:12px">OX · 3지선다 · 4지선다 중 하나</span></div>
+  <div id="final-stage-lobby" style="display:none;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;border-radius:12px;padding:14px 16px;text-align:center;font-size:14px;font-weight:800;margin-bottom:12px;animation:pulse 1.5s infinite">
+    🔥 막판뒤집기 스테이지 가동 중! 승리 ×3점!<br>
+    <span style="font-size:12px;font-weight:600;opacity:.9">거부 = 즉시 패배 + 보유 승수×3 차감!</span>
   </div>
-
   <div class="stat-grid">
     <div class="stat-box"><div class="stat-num" id="stat-wins">0</div><div class="stat-label">🏆 승리</div></div>
     <div class="stat-box"><div class="stat-num" id="stat-battles">0</div><div class="stat-label">⚔️ 대결</div></div>
     <div class="stat-box"><div class="stat-num" id="stat-correct">0</div><div class="stat-label">✅ 정답</div></div>
   </div>
-
   <button class="btn btn-primary" onclick="showScreen('screen-challenge')">⚔️ 대결 신청하기</button>
   <button class="btn btn-outline" onclick="goRankings()">🏆 전체 순위 보기</button>
 </div>
 
-<!-- ============================
-     화면 3: 대결 신청
-============================= -->
+<!-- 화면3: 대결 신청 -->
 <div id="screen-challenge" class="screen">
   <div class="header"><h1>⚔️ 대결 신청</h1></div>
   <div class="card">
@@ -297,25 +308,18 @@ input:focus{border-color:var(--blue);}
   </div>
 </div>
 
-<!-- ============================
-     화면 4: 도전 대기
-============================= -->
+<!-- 화면4: 도전 대기 -->
 <div id="screen-waiting" class="screen">
   <div class="header"><h1>⏳ 대결 대기 중</h1></div>
   <div class="card text-center" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center">
     <div style="font-size:64px;margin-bottom:16px" class="pulse">⏳</div>
-    <h2 id="waiting-text" style="font-size:17px;line-height:1.6">상대방의 수락을 기다리는 중...</h2>
-    <p class="text-gray mt8" id="waiting-sub"></p>
-    <div class="random-notice mt16" style="max-width:280px">
-      🎲 수락되면 랜덤 문제 유형이 공개됩니다!
-    </div>
+    <h2 id="waiting-text" style="font-size:16px;line-height:1.6">상대방의 수락을 기다리는 중...</h2>
+    <div class="random-notice mt16" style="max-width:280px">🎲 수락되면 랜덤 문제 유형 공개!</div>
     <button class="btn btn-gray mt16" onclick="cancelChallenge()" style="max-width:200px">취소</button>
   </div>
 </div>
 
-<!-- ============================
-     화면 5: 섹터 공개 (랜덤 공개 연출)
-============================= -->
+<!-- 화면5: 섹터 공개 -->
 <div id="screen-sector-reveal" class="screen">
   <div class="header"><h1>🎲 문제 유형 공개!</h1></div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
@@ -331,69 +335,71 @@ input:focus{border-color:var(--blue);}
   </div>
 </div>
 
-<!-- ============================
-     화면 6: 배틀
-============================= -->
+<!-- 화면6: 배틀 -->
 <div id="screen-battle" class="screen">
   <div class="score-board" id="score-board"></div>
-
   <div class="card" style="flex:1">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <span class="sector-badge" id="battle-sector-badge">섹터</span>
       <span class="text-gray" id="q-progress" style="font-size:13px;font-weight:600">1/5</span>
     </div>
-
     <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
     <div class="timer-num" id="timer-display">6</div>
-
     <div class="question-text" id="battle-question">문제 로딩 중...</div>
     <div id="battle-options"></div>
   </div>
 </div>
 
-<!-- ============================
-     화면 7: 문제 결과
-============================= -->
+<!-- 화면7: 문제 결과 (강화) -->
 <div id="screen-q-result" class="screen">
-  <div class="card text-center" style="flex:1;display:flex;flex-direction:column;justify-content:center">
-    <div class="result-icon" id="qr-icon">✅</div>
-    <div class="result-title" id="qr-title">정답!</div>
-    <div class="result-sub" id="qr-sub"></div>
-    <div class="explanation" id="qr-explanation"></div>
-    <div class="score-board" id="qr-score-board" style="margin-bottom:0"></div>
-    <p class="text-gray mt8" style="font-size:13px">잠시 후 다음 문제...</p>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div id="qr-banner" class="card text-center">
+      <div class="result-big" id="qr-icon">✅</div>
+      <div class="result-title" id="qr-title">정답!</div>
+      <div class="result-sub" id="qr-sub"></div>
+    </div>
+    <div class="card">
+      <div class="explanation" id="qr-explanation"></div>
+      <div class="score-board" id="qr-score-board" style="margin-bottom:8px"></div>
+      <div id="qr-ice-msg"></div>
+      <p class="text-gray text-center" style="font-size:13px">잠시 후 다음 문제...</p>
+    </div>
   </div>
 </div>
 
-<!-- ============================
-     화면 8: 배틀 종료
-============================= -->
+<!-- 화면8: 배틀 종료 (강화) -->
 <div id="screen-battle-end" class="screen">
   <div class="header"><h1>🏁 대결 종료</h1></div>
-  <div class="card text-center" style="margin-bottom:12px">
-    <div class="result-icon" id="end-icon">🏆</div>
-    <div class="result-title" id="end-title">승리!</div>
-    <div class="result-sub" id="end-sub"></div>
-    <div class="text-gray mt8" id="end-sector" style="font-size:13px"></div>
+  <div id="end-banner" class="win-banner text-center">
+    <div style="font-size:64px;animation:bounceIn .6s ease" id="end-icon">🏆</div>
+    <div style="font-size:26px;font-weight:900;margin-top:8px" id="end-title">승리!</div>
+    <div style="font-size:14px;opacity:.85;margin-top:4px" id="end-sub"></div>
+    <div style="font-size:13px;opacity:.7;margin-top:4px" id="end-sector"></div>
   </div>
   <div class="card">
-    <div class="score-board" id="end-score-board"></div>
+    <div class="score-board" id="end-score-board" style="margin-bottom:12px"></div>
+    <div id="end-ice-msg"></div>
   </div>
-  <button class="btn btn-primary mt8" onclick="goLobby()">🏠 로비로 이동</button>
-  <button class="btn btn-outline" onclick="goRankings()">🏆 순위 보기</button>
+  <!-- 개인 전적 요약 -->
+  <div class="card">
+    <h2>📊 내 현재 전적</h2>
+    <div class="stat-grid" style="margin-bottom:0">
+      <div class="stat-box"><div class="stat-num" id="end-stat-wins">0</div><div class="stat-label">🏆 승리</div></div>
+      <div class="stat-box"><div class="stat-num" id="end-stat-battles">0</div><div class="stat-label">⚔️ 대결</div></div>
+      <div class="stat-box"><div class="stat-num" id="end-stat-wr">0%</div><div class="stat-label">📈 승률</div></div>
+    </div>
+  </div>
+  <button class="btn btn-primary mt8" onclick="goLobby()">⚔️ 또 대결하기!</button>
+  <button class="btn btn-outline" onclick="goRankings()">🏆 전체 순위 보기</button>
 </div>
 
-<!-- ============================
-     화면 9: 순위
-============================= -->
+<!-- 화면9: 순위 -->
 <div id="screen-rankings" class="screen">
   <div class="header"><h1>🏆 전체 순위</h1></div>
   <div class="tab-bar">
     <button class="tab active" id="tab-individual" onclick="showRankTab('individual')">개인 순위</button>
     <button class="tab" id="tab-team" onclick="showRankTab('team')">팀 순위</button>
   </div>
-
-  <!-- 개인 순위 -->
   <div id="rank-individual">
     <div class="tab-bar" style="margin-bottom:8px">
       <button class="tab active" id="itab-winrate" onclick="showIndividualRank('winrate')">승률순</button>
@@ -402,8 +408,6 @@ input:focus{border-color:var(--blue);}
     </div>
     <div class="scroll-x"><table class="rank-table" id="individual-table"></table></div>
   </div>
-
-  <!-- 팀 순위 -->
   <div id="rank-team" style="display:none">
     <div class="tab-bar" style="margin-bottom:8px">
       <button class="tab active" id="ttab-winrate" onclick="showTeamRank('winrate')">평균승률</button>
@@ -412,65 +416,266 @@ input:focus{border-color:var(--blue);}
     </div>
     <div class="scroll-x"><table class="rank-table" id="team-table"></table></div>
   </div>
-
   <button class="btn btn-outline mt8" onclick="goBack()">← 돌아가기</button>
 </div>
 
 <!-- ============================
-     화면 10: 관리자
+     화면10: 관리자 대시보드 (PC 최적화)
 ============================= -->
-<div id="screen-admin" class="screen">
-  <div class="header"><h1>🔐 관리자 패널</h1><div class="sub">새마을금고 퀴즈 대결 관리</div></div>
+<div id="screen-admin" class="screen" style="padding:0;background:#0F172A;min-height:100vh">
 
-  <div class="card">
-    <h2>🎲 문제 유형 방식</h2>
-    <div style="background:var(--purple-light);border-radius:12px;padding:14px;text-align:center;">
-      <div style="font-size:28px;margin-bottom:6px">🎲</div>
-      <div style="font-weight:700;color:var(--purple);font-size:15px">완전 랜덤 방식</div>
-      <div style="font-size:13px;color:var(--gray);margin-top:4px">
-        대결이 시작될 때마다 OX · 3지선다 · 4지선다 중<br>랜덤으로 결정됩니다. 아무도 미리 알 수 없어요!
+  <!-- 상단 헤더바 -->
+  <div style="background:linear-gradient(135deg,#1A56DB,#1040A8);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.4)">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="font-size:28px">🏦</span>
+      <div>
+        <div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:-0.5px">새마을금고 퀴즈 대결</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:1px">관리자 대시보드 · PC 화면 투사 모드</div>
       </div>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>👥 참가 현황</h2>
-    <p id="admin-stats" class="text-gray">로딩 중...</p>
-  </div>
-
-  <div class="card">
-    <h2>🏆 순위 확인</h2>
-    <button class="btn btn-outline" onclick="showScreen('screen-rankings')">순위 화면으로</button>
-  </div>
-
-  <div class="card">
-    <h2>📋 문제 목록 보기</h2>
-    <div class="tab-bar" style="margin-bottom:10px">
-      <button class="tab active" id="qtab-1" onclick="showQTab(1)">⭕ OX (30문제)</button>
-      <button class="tab" id="qtab-2" onclick="showQTab(2)">3️⃣ 3지선다 (25문제)</button>
-      <button class="tab" id="qtab-3" onclick="showQTab(3)">4️⃣ 4지선다 (25문제)</button>
-    </div>
-    <div id="q-list-wrap" style="max-height:400px;overflow-y:auto">
-      <p class="text-gray" style="text-align:center;padding:16px">로딩 중... 잠시만 기다려주세요</p>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:20px;padding:6px 14px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#4ADE80;display:inline-block;animation:pulse 1.5s infinite"></span>
+        <span style="color:#fff;font-size:13px;font-weight:700" id="admin-clock">--:--:--</span>
+      </div>
+      <div style="color:rgba(255,255,255,.8);font-size:13px" id="admin-header-stats">참가자 0명</div>
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="card">
-    <h2>⚙️ 초기화</h2>
-    <button class="btn btn-gold" onclick="adminResetScores()" style="margin-bottom:8px">📊 점수만 초기화 (등록 유지)</button>
-    <button class="btn btn-danger" onclick="adminResetAll()">🗑 전체 초기화 (재등록 필요)</button>
+  <!-- 탭 네비게이션 -->
+  <div style="background:#1E293B;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid rgba(255,255,255,.1)">
+    <button class="admin-nav-tab active" id="anav-dashboard" onclick="showAdminTab('dashboard')">📊 실시간 현황</button>
+    <button class="admin-nav-tab" id="anav-individual" onclick="showAdminTab('individual')">🏆 개인 순위</button>
+    <button class="admin-nav-tab" id="anav-team" onclick="showAdminTab('team')">🏅 팀 순위</button>
+    <button class="admin-nav-tab" id="anav-feed" onclick="showAdminTab('feed')">⚔️ 대결 피드</button>
+    <button class="admin-nav-tab" id="anav-questions" onclick="showAdminTab('questions')">📋 문제 관리</button>
+    <button class="admin-nav-tab" id="anav-control" onclick="showAdminTab('control')">⚙️ 제어</button>
   </div>
+
+  <!-- 탭 컨텐츠 영역 -->
+  <div style="padding:20px 24px;overflow-y:auto;max-height:calc(100vh - 120px)">
+
+    <!-- ① 실시간 현황 대시보드 -->
+    <div id="admin-tab-dashboard">
+      <!-- KPI 카드 6개 -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px">
+        <div class="kpi-card" style="--kc:#3B82F6">
+          <div class="kpi-icon">👥</div><div class="kpi-num" id="kpi-total">0</div><div class="kpi-label">총 참가자</div>
+        </div>
+        <div class="kpi-card" style="--kc:#10B981">
+          <div class="kpi-icon">🟢</div><div class="kpi-num" id="kpi-online">0</div><div class="kpi-label">현재 접속</div>
+        </div>
+        <div class="kpi-card" style="--kc:#F59E0B">
+          <div class="kpi-icon">⚔️</div><div class="kpi-num" id="kpi-battle">0</div><div class="kpi-label">대결 중</div>
+        </div>
+        <div class="kpi-card" style="--kc:#8B5CF6">
+          <div class="kpi-icon">🏁</div><div class="kpi-num" id="kpi-done">0</div><div class="kpi-label">완료 대결</div>
+        </div>
+        <div class="kpi-card" style="--kc:#EF4444">
+          <div class="kpi-icon">✅</div><div class="kpi-num" id="kpi-correct">0</div><div class="kpi-label">누적 정답</div>
+        </div>
+        <div class="kpi-card" style="--kc:#06B6D4">
+          <div class="kpi-icon">🏷️</div><div class="kpi-num" id="kpi-teams">0</div><div class="kpi-label">참가 팀수</div>
+        </div>
+      </div>
+
+      <!-- 대시보드 2단 레이아웃 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- 개인 TOP5 -->
+        <div class="dash-panel">
+          <div class="dash-panel-hdr">
+            <span>🏆 개인 TOP 5 (승률 기준)</span>
+            <span class="live-badge">LIVE</span>
+          </div>
+          <div id="dash-top5-individual"></div>
+        </div>
+        <!-- 팀 TOP5 -->
+        <div class="dash-panel">
+          <div class="dash-panel-hdr">
+            <span>🏅 팀 TOP 5 (평균 승률 기준)</span>
+            <span class="live-badge">LIVE</span>
+          </div>
+          <div id="dash-top5-team"></div>
+        </div>
+        <!-- 최근 대결 -->
+        <div class="dash-panel" style="grid-column:1/-1">
+          <div class="dash-panel-hdr">
+            <span>⚔️ 최근 대결 결과</span>
+            <span class="live-badge">LIVE</span>
+          </div>
+          <div id="dash-recent-battles" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;min-height:80px">
+            <div style="color:rgba(255,255,255,.4);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">아직 완료된 대결이 없습니다</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 개인 순위 전체 -->
+    <div id="admin-tab-individual" style="display:none">
+      <div class="dash-panel">
+        <div class="dash-panel-hdr">
+          <span>🏆 전체 개인 순위</span>
+          <div style="display:flex;gap:6px">
+            <button class="admin-sort-btn active" id="asort-winrate" onclick="setAdminSort('winrate')">승률순</button>
+            <button class="admin-sort-btn" id="asort-correct" onclick="setAdminSort('correct')">정답순</button>
+            <button class="admin-sort-btn" id="asort-battles" onclick="setAdminSort('battles')">대결순</button>
+          </div>
+        </div>
+        <div id="admin-individual-list" style="max-height:calc(100vh - 240px);overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- ③ 팀 순위 전체 -->
+    <div id="admin-tab-team" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="dash-panel">
+          <div class="dash-panel-hdr"><span>📈 팀 평균 승률 순위</span></div>
+          <div id="team-rank-winrate"></div>
+        </div>
+        <div class="dash-panel">
+          <div class="dash-panel-hdr"><span>✅ 팀 정답 합계 순위</span></div>
+          <div id="team-rank-correct"></div>
+        </div>
+        <div class="dash-panel">
+          <div class="dash-panel-hdr"><span>⚔️ 팀 대결 합계 순위</span></div>
+          <div id="team-rank-battles"></div>
+        </div>
+      </div>
+      <!-- 팀별 상세 -->
+      <div class="dash-panel">
+        <div class="dash-panel-hdr"><span>👥 팀별 구성원 상세</span></div>
+        <div id="team-detail-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
+      </div>
+    </div>
+
+    <!-- ④ 대결 피드 -->
+    <div id="admin-tab-feed" style="display:none">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+        <div class="dash-panel">
+          <div class="dash-panel-hdr"><span>⚔️ 실시간 대결 피드</span><span class="live-badge">LIVE</span></div>
+          <div id="battle-feed-list" style="max-height:calc(100vh - 240px);overflow-y:auto"></div>
+        </div>
+        <div>
+          <div class="dash-panel" style="margin-bottom:16px">
+            <div class="dash-panel-hdr"><span>🔥 현재 대결 중인 선수</span></div>
+            <div id="current-battlers"></div>
+          </div>
+          <div class="dash-panel">
+            <div class="dash-panel-hdr"><span>📊 오늘의 통계</span></div>
+            <div id="today-stats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ 문제 관리 -->
+    <div id="admin-tab-questions" style="display:none">
+      <div class="admin-msg-dark" id="admin-msg-box" style="display:none"></div>
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:16px">
+        <!-- 좌: 업로드 + 섹터 선택 -->
+        <div>
+          <div class="dash-panel" style="margin-bottom:16px">
+            <div class="dash-panel-hdr"><span>📤 엑셀 업로드</span></div>
+            <div class="upload-area-dark" onclick="document.getElementById('excel-upload').click()">
+              <input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
+              <div style="font-size:32px;margin-bottom:6px">📊</div>
+              <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:14px">엑셀 파일 선택</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.5)">서식 파일 수정 후 업로드</div>
+            </div>
+            <div id="upload-status" style="display:none;margin-top:10px;font-size:13px;color:#4ADE80;font-weight:600;text-align:center;padding:8px;background:rgba(74,222,128,.1);border-radius:8px"></div>
+          </div>
+          <div class="dash-panel">
+            <div class="dash-panel-hdr"><span>📚 섹터 선택</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+              <button class="sector-tab-btn active" id="qtab-1" onclick="showQTab(1)">⭕ OX 퀴즈 <span id="qtab-1-count" style="opacity:.7"></span></button>
+              <button class="sector-tab-btn" id="qtab-2" onclick="showQTab(2)">3️⃣ 3지 선다 <span id="qtab-2-count" style="opacity:.7"></span></button>
+              <button class="sector-tab-btn" id="qtab-3" onclick="showQTab(3)">4️⃣ 4지 선다 <span id="qtab-3-count" style="opacity:.7"></span></button>
+            </div>
+            <button class="btn btn-primary" style="margin-top:12px;font-size:13px;padding:10px" onclick="openAddModal()">➕ 문제 추가</button>
+          </div>
+        </div>
+        <!-- 우: 문제 목록 -->
+        <div class="dash-panel">
+          <div class="dash-panel-hdr">
+            <span id="q-list-title">문제 목록</span>
+            <span id="q-count" style="color:rgba(255,255,255,.6);font-size:13px"></span>
+          </div>
+          <div id="q-list-wrap" style="max-height:calc(100vh - 240px);overflow-y:auto">
+            <div style="color:rgba(255,255,255,.4);padding:20px;text-align:center">로딩 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ 제어 -->
+    <div id="admin-tab-control" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+        <!-- 막판뒤집기 카드 -->
+        <div class="dash-panel" style="border:2px solid rgba(239,68,68,.3);grid-column:1/-1">
+          <div class="dash-panel-hdr" style="margin-bottom:16px">
+            <span style="color:#F87171;font-size:16px">🔥 막판뒤집기 스테이지 (승수 ×3)</span>
+            <div id="final-stage-indicator" style="padding:4px 14px;border-radius:20px;font-size:13px;font-weight:800;background:rgba(255,255,255,.1);color:rgba(255,255,255,.4)">OFF</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <button id="btn-final-on" onclick="adminSetFinalStage(true)"
+              style="padding:18px;background:linear-gradient(135deg,#EF4444,#DC2626);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s">
+              🔥 막판뒤집기 ON
+            </button>
+            <button id="btn-final-off" onclick="adminSetFinalStage(false)"
+              style="padding:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;color:rgba(255,255,255,.5);font-size:16px;font-weight:800;cursor:pointer;transition:all .2s">
+              ⏹ 종료 / OFF
+            </button>
+          </div>
+          <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="color:#F87171;font-size:13px;font-weight:700;margin-bottom:6px">📌 막판뒤집기 규칙</div>
+            <div style="color:rgba(255,255,255,.6);font-size:12px;line-height:1.9">
+              • 이 스테이지의 승리는 <strong style="color:#FCA5A5">+3점</strong> (×3 배점)<br>
+              • 대결 거부 시 자동 패배 + 보유 승수×3 차감<br>
+              • 팀전·개인전 모두 동일 적용
+            </div>
+          </div>
+          <!-- 수동 패널티 -->
+          <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px">
+            <div style="color:#F87171;font-size:13px;font-weight:700;margin-bottom:10px">⚡ 수동 패널티 적용 (거부자 이름 입력)</div>
+            <div style="display:flex;gap:8px">
+              <input id="penalty-name-input" type="text" placeholder="거부자 이름 입력"
+                style="flex:1;padding:10px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;outline:none">
+              <button onclick="adminApplyPenalty()"
+                style="padding:10px 18px;background:#EF4444;border:none;border-radius:10px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap">
+                패널티 적용
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 초기화 카드 -->
+        <div class="dash-panel">
+          <div class="dash-panel-hdr"><span>⚙️ 게임 초기화</span></div>
+          <button class="btn btn-gold" onclick="adminResetScores()" style="margin-bottom:10px;font-size:15px">📊 점수만 초기화 (등록 유지)</button>
+          <button class="btn btn-danger" onclick="adminResetAll()" style="font-size:15px">🗑 전체 초기화 (재등록 필요)</button>
+        </div>
+
+        <!-- 시스템 정보 -->
+        <div class="dash-panel">
+          <div class="dash-panel-hdr"><span>ℹ️ 시스템 정보</span></div>
+          <div style="color:rgba(255,255,255,.7);font-size:14px;line-height:2.2;margin-top:8px">
+            <div>🔐 관리자 비밀번호: <strong style="color:#fff">2026</strong></div>
+            <div>🎲 문제 방식: <strong style="color:#4ADE80">완전 랜덤</strong></div>
+            <div id="ctrl-total-q" style="color:rgba(255,255,255,.7)">📚 문제: 로딩 중</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
 </div>
 
-<!-- ============================
-     도전 수신 오버레이
-============================= -->
+<!-- 도전 수신 오버레이 -->
 <div class="overlay" id="challenge-overlay">
   <div class="overlay-card">
     <div style="font-size:52px;margin-bottom:8px">⚔️</div>
-    <h2>도전장이 왔습니다!</h2>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">도전장이 왔습니다!</h2>
     <div class="challenger-num" id="challenger-num">7</div>
     <div class="challenger-name" id="challenger-name">홍길동</div>
     <div class="text-gray mt8" id="challenger-team">2팀</div>
@@ -482,92 +687,122 @@ input:focus{border-color:var(--blue);}
   </div>
 </div>
 
-<!-- ============================
-     JavaScript
-============================= -->
+<!-- 문제 추가/수정 모달 -->
+<div class="modal" id="q-modal">
+  <div class="modal-box">
+    <h3 id="modal-title">문제 추가</h3>
+    <input type="hidden" id="modal-mode"><!-- add/edit -->
+    <input type="hidden" id="modal-sector">
+    <input type="hidden" id="modal-index">
+    <div class="label">섹터 선택</div>
+    <select id="modal-sector-select" onchange="updateModalOpts()">
+      <option value="1">섹터1 - OX 퀴즈</option>
+      <option value="2">섹터2 - 3지 선다</option>
+      <option value="3">섹터3 - 4지 선다</option>
+    </select>
+    <div class="label">문제</div>
+    <textarea id="modal-q" placeholder="문제를 입력하세요" rows="3"></textarea>
+    <div id="modal-opts-wrap">
+      <!-- 동적 생성 -->
+    </div>
+    <div class="label">정답 (보기와 정확히 동일하게)</div>
+    <input id="modal-ans" type="text" placeholder="정답 입력">
+    <div class="label">해설</div>
+    <textarea id="modal-exp" placeholder="해설을 입력하세요" rows="2"></textarea>
+    <div class="flex-row mt12">
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="submitModal()">저장</button>
+      <button class="btn btn-gray btn-sm" style="flex:1" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const socket = io();
 
-// ── 앱 상태 ──
-let myId=null, myName='', myTeam=0;
-let currentBattle=null;
-let timerInterval=null;
-let timerSecs=6;
-let currentAnswer=null;
-let pendingChallengerId=null;
-let allPlayers=[];
-let currentRankTab='individual';
-let currentISort='winrate';
-let currentTSort='winrate';
+let myId=null,myName='',myTeam=0;
+let currentBattle=null,timerInterval=null,timerSecs=6,currentAnswer=null;
+let pendingChallengerId=null,allPlayers=[],adminQuizDB={};
+let currentQTab=1,currentISort='winrate',currentTSort='winrate';
 
-const SECTOR_INFO = {
-  1: { name:'OX 퀴즈', icon:'⭕', class:'s1', short:'1섹터 OX' },
-  2: { name:'3지 선다', icon:'3️⃣', class:'s2', short:'2섹터 3지선다' },
-  3: { name:'4지 선다', icon:'4️⃣', class:'s3', short:'3섹터 4지선다' }
+const SECTOR_INFO={
+  1:{name:'OX 퀴즈',icon:'⭕',cls:'s1',short:'1섹터 OX'},
+  2:{name:'3지 선다',icon:'3️⃣',cls:'s2',short:'2섹터 3지선다'},
+  3:{name:'4지 선다',icon:'4️⃣',cls:'s3',short:'3섹터 4지선다'}
 };
 
-// ── 화면 전환 ──
-function showScreen(id) {
+const ICE_WIN=[
+  "🎉 연속 도전해서 이 흥을 이어가세요!",
+  "🔥 이 기세로 더 많은 상대를 이겨봐요!",
+  "💪 이 팀에 강자가 나타났군요!",
+  "🌟 완벽한 실력! 주변에 자랑하세요!",
+  "⚡ 번개처럼 빠른 반응속도 인정!",
+];
+const ICE_LOSE=[
+  "😊 질수록 더 알게 돼요! 다시 도전!",
+  "📚 틀린 문제 복습하면 다음엔 꼭 이겨요!",
+  "💪 패배는 성장의 시작! 다음엔 역전!",
+  "🔄 같은 실수 반복 안 하면 고수가 됩니다!",
+  "🤝 졌지만 잘 싸웠어요! 또 만나요!",
+];
+const ICE_DRAW=["🤝 완벽한 실력 균형! 재대결 신청해보세요!","⚖️ 동점! 이 인연 이어가세요!"];
+
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id==='screen-rankings') { socket.emit('getRankings'); }
-  if (id==='screen-lobby') updateLobby();
+  if(id==='screen-rankings'){socket.emit('getRankings');}
+  if(id==='screen-lobby')updateLobby();
 }
-function goLobby() { showScreen('screen-lobby'); }
-function goRankings() { showScreen('screen-rankings'); }
-function goBack() { showScreen(myId ? 'screen-lobby' : 'screen-welcome'); }
+function goLobby(){showScreen('screen-lobby');}
+function goRankings(){showScreen('screen-rankings');}
+function goBack(){showScreen(myId?'screen-lobby':'screen-welcome');}
 
-// ── 알림 ──
-function showNotif(msg, ms=2800) {
+function showNotif(msg,ms=3000){
   document.querySelector('.notif')?.remove();
   const el=document.createElement('div');
-  el.className='notif'; el.textContent=msg;
+  el.className='notif';el.textContent=msg;
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(), ms);
+  setTimeout(()=>el.remove(),ms);
 }
 
-// ── 등록 / 재접속 ──
-function doRegister() {
+// ── 등록 ──
+function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
   const team=document.getElementById('reg-team').value;
-  if (!name) return showNotif('⚠️ 이름을 입력해주세요');
-  if (!team||team<1) return showNotif('⚠️ 팀 번호를 입력해주세요');
+  if(!name)return showNotif('⚠️ 이름을 입력해주세요');
+  if(!team)return showNotif('⚠️ 팀 번호를 선택해주세요');
   socket.emit('register',{name,team});
 }
-function doReconnect() {
+function doReconnect(){
   const id=parseInt(document.getElementById('reconnect-id').value);
-  if (!id) return showNotif('⚠️ 번호를 입력해주세요');
+  if(!id)return showNotif('⚠️ 번호를 입력해주세요');
   socket.emit('reconnectPlayer',id);
 }
-function doAdminLogin() {
-  socket.emit('adminAuth', document.getElementById('admin-pw').value);
-}
+function doAdminLogin(){socket.emit('adminAuth',document.getElementById('admin-pw').value);}
 
 socket.on('registered',({id,player})=>{
-  myId=id; myName=player.name; myTeam=player.team;
-  // 등록 완료 화면 먼저 표시
+  myId=id;myName=player.name;myTeam=player.team;
   document.getElementById('reg-done-name').textContent=player.name;
   document.getElementById('reg-done-team').textContent=`${player.team}팀`;
   document.getElementById('reg-done-num').textContent=id;
-  updateLobby();
-  showScreen('screen-registered');
-  showNotif(`✅ 등록 완료! 내 대결번호: ${id}번`);
+  updateLobby();showScreen('screen-registered');
 });
 socket.on('reconnected',({player})=>{
-  myId=player.id; myName=player.name; myTeam=player.team;
-  updateLobby(); showScreen('screen-lobby');
+  myId=player.id;myName=player.name;myTeam=player.team;
+  updateLobby();showScreen('screen-lobby');
   showNotif(`🔄 재접속 완료! ${player.name}님 (${player.id}번)`);
 });
 socket.on('reconnectFailed',()=>showNotif('❌ 해당 번호를 찾을 수 없습니다.'));
 
-// ── 로비 업데이트 ──
-function updateLobby() {
-  if (!myId) return;
+function updateLobby(){
+  if(!myId)return;
   document.getElementById('my-number').textContent=myId;
   document.getElementById('my-name').textContent=myName;
   document.getElementById('my-team').textContent=`${myTeam}팀`;
   const me=allPlayers.find(p=>p.id===myId);
-  if (me) {
+  if(me){
     document.getElementById('stat-wins').textContent=me.wins;
     document.getElementById('stat-battles').textContent=me.battleCount;
     document.getElementById('stat-correct').textContent=me.correct;
@@ -575,31 +810,20 @@ function updateLobby() {
 }
 
 // ── 도전 ──
-function doChallenge() {
+function doChallenge(){
   const oppId=parseInt(document.getElementById('opponent-id').value);
-  if (!oppId) return showNotif('⚠️ 상대방 번호를 입력해주세요');
+  if(!oppId)return showNotif('⚠️ 상대방 번호를 입력해주세요');
   socket.emit('challenge',oppId);
 }
-function cancelChallenge() {
-  socket.emit('cancelChallenge'); showScreen('screen-lobby');
-}
+function cancelChallenge(){socket.emit('cancelChallenge');showScreen('screen-lobby');}
 
 socket.on('challengeSent',({opponentId,opponentName})=>{
   document.getElementById('waiting-text').textContent=`${opponentName}(${opponentId}번)님의 수락을 기다리는 중...`;
-  document.getElementById('waiting-sub').textContent='상대방이 수락하면 랜덤 유형이 공개됩니다!';
   showScreen('screen-waiting');
 });
 socket.on('challengeError',(msg)=>showNotif('❌ '+msg));
-socket.on('challengeRejected',({opponentName})=>{
-  showScreen('screen-lobby');
-  showNotif(`😥 ${opponentName||'상대방'}이 거절했습니다.`);
-});
-socket.on('challengeCancelled',()=>{
-  hideOverlay();
-  showNotif('상대방이 도전을 취소했습니다.');
-});
+socket.on('challengeCancelled',()=>{hideOverlay();showNotif('상대방이 도전을 취소했습니다.');});
 
-// ── 도전 수신 ──
 socket.on('challenged',({challengerId,challengerName,challengerTeam})=>{
   pendingChallengerId=challengerId;
   document.getElementById('challenger-num').textContent=challengerId;
@@ -607,88 +831,57 @@ socket.on('challenged',({challengerId,challengerName,challengerTeam})=>{
   document.getElementById('challenger-team').textContent=`${challengerTeam}팀`;
   document.getElementById('challenge-overlay').classList.add('show');
 });
-function acceptChallenge() {
-  if (!pendingChallengerId) return;
-  socket.emit('acceptChallenge',pendingChallengerId);
-  hideOverlay();
-}
-function rejectChallenge() {
-  if (!pendingChallengerId) return;
-  socket.emit('rejectChallenge',pendingChallengerId);
-  pendingChallengerId=null; hideOverlay();
-}
-function hideOverlay() {
-  document.getElementById('challenge-overlay').classList.remove('show');
-  pendingChallengerId=null;
-}
+function acceptChallenge(){if(!pendingChallengerId)return;socket.emit('acceptChallenge',pendingChallengerId);hideOverlay();}
+function rejectChallenge(){if(!pendingChallengerId)return;socket.emit('rejectChallenge',pendingChallengerId);pendingChallengerId=null;hideOverlay();}
+function hideOverlay(){document.getElementById('challenge-overlay').classList.remove('show');pendingChallengerId=null;}
 
-// ── 배틀 시작 → 섹터 공개 연출 ──
+// ── 배틀 ──
 socket.on('battleQuestion',({battleId,qIdx,question,options,sector,sectorName,scores,totalQ})=>{
   currentBattle={battleId,qIdx,options,scores,totalQ,sector};
   currentAnswer=null;
-
-  if (qIdx===0) {
-    // 첫 문제 = 섹터 공개 연출
-    showSectorReveal(sector, scores, ()=>{
-      renderBattle(question,options,sector,scores,qIdx,totalQ);
-      showScreen('screen-battle');
-    });
+  if(qIdx===0){
+    showSectorReveal(sector,scores,()=>{renderBattle(question,options,sector,scores,qIdx,totalQ);showScreen('screen-battle');});
   } else {
-    renderBattle(question,options,sector,scores,qIdx,totalQ);
-    showScreen('screen-battle');
+    renderBattle(question,options,sector,scores,qIdx,totalQ);showScreen('screen-battle');
   }
 });
 
-function showSectorReveal(sector, scores, callback) {
+function showSectorReveal(sector,scores,cb){
   const info=SECTOR_INFO[sector];
-  const [p1,p2]=Object.keys(scores).map(Number);
-  const opp=p1===myId?p2:p1;
-  const oppPlayer=allPlayers.find(p=>p.id===opp);
-
+  const ids=Object.keys(scores).map(Number);
+  const opp=ids.find(i=>i!==myId);
+  const oppPl=allPlayers.find(p=>p.id===opp);
   document.getElementById('reveal-icon').textContent=info.icon;
   document.getElementById('reveal-name').textContent=info.name;
-  document.getElementById('reveal-vs-text').textContent=
-    `나 vs ${opp}번 ${oppPlayer?.name||''} | 5문제 3선승제`;
-
-  const box=document.getElementById('sector-reveal-box');
-  box.className='sector-reveal';
+  document.getElementById('reveal-vs-text').textContent=`나 vs ${opp}번 ${oppPl?.name||''} | 5문제 3선승제`;
   showScreen('screen-sector-reveal');
-
-  // 2초 후 배틀 화면으로
-  setTimeout(callback, 2000);
+  setTimeout(cb,2200);
 }
 
-function renderBattle(question,options,sector,scores,qIdx,totalQ) {
+function renderBattle(question,options,sector,scores,qIdx,totalQ){
   const info=SECTOR_INFO[sector];
   const badge=document.getElementById('battle-sector-badge');
-  badge.className=`sector-badge ${info.class}`;
-  badge.textContent=info.short;
-
+  badge.className=`sector-badge ${info.cls}`;badge.textContent=info.short;
   document.getElementById('q-progress').textContent=`${qIdx+1} / ${totalQ}`;
   document.getElementById('battle-question').textContent=question;
   renderScoreBoard('score-board',scores);
-
   const container=document.getElementById('battle-options');
   container.innerHTML='';
   options.forEach((opt,i)=>{
     const btn=document.createElement('button');
     const isOX=options.length===2&&(opt==='O'||opt==='X');
     btn.className='option-btn'+(isOX?' ox':'');
-    if (isOX) {
-      btn.textContent=opt==='O'?'⭕ O':'❌ X';
-    } else {
-      btn.innerHTML=`<span class="opt-label">${['①','②','③','④'][i]}</span><span>${opt}</span>`;
-    }
+    if(isOX)btn.textContent=opt==='O'?'⭕ O':'❌ X';
+    else btn.innerHTML=`<span class="opt-label">${['①','②','③','④'][i]}</span><span>${opt}</span>`;
     btn.onclick=()=>submitAnswer(opt,btn);
     container.appendChild(btn);
   });
-
   startTimer();
 }
 
-function renderScoreBoard(id,scores) {
+function renderScoreBoard(id,scores){
   const container=document.getElementById(id);
-  if (!container||!currentBattle) return;
+  if(!container||!currentBattle)return;
   const ids=Object.keys(scores).map(Number);
   const me=ids.includes(myId)?myId:ids[0];
   const opp=ids.find(i=>i!==me);
@@ -706,272 +899,717 @@ function renderScoreBoard(id,scores) {
     </div>`;
 }
 
-// ── 타이머 ──
-function startTimer() {
-  clearInterval(timerInterval);
-  timerSecs=6;
-  updateTimerUI(6);
+function startTimer(){
+  clearInterval(timerInterval);timerSecs=6;updateTimerUI(6);
   timerInterval=setInterval(()=>{
-    timerSecs-=0.1;
-    updateTimerUI(Math.max(0,timerSecs));
-    if (timerSecs<=0) { clearInterval(timerInterval); lockBtns(); }
+    timerSecs-=0.1;updateTimerUI(Math.max(0,timerSecs));
+    if(timerSecs<=0){clearInterval(timerInterval);lockBtns();}
   },100);
 }
-function updateTimerUI(t) {
-  const pct=(t/6)*100;
-  const bar=document.getElementById('timer-bar');
-  const disp=document.getElementById('timer-display');
-  bar.style.width=pct+'%';
+function updateTimerUI(t){
+  const bar=document.getElementById('timer-bar'),disp=document.getElementById('timer-display');
+  bar.style.width=(t/6*100)+'%';
   bar.style.background=t>3?'var(--blue)':t>1.5?'var(--gold)':'var(--red)';
   disp.textContent=Math.ceil(t);
   disp.style.color=t>3?'var(--blue)':t>1.5?'var(--gold)':'var(--red)';
-  if (t<=2) disp.classList.add('pulse'); else disp.classList.remove('pulse');
+  if(t<=2)disp.classList.add('pulse');else disp.classList.remove('pulse');
 }
-function lockBtns() {
-  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
-}
+function lockBtns(){document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);}
 
-// ── 답변 제출 ──
-function submitAnswer(answer,btn) {
-  if (currentAnswer) return;
-  clearInterval(timerInterval);
-  currentAnswer=answer;
-  lockBtns();
-  btn.classList.add('selected');
+function submitAnswer(answer,btn){
+  if(currentAnswer)return;
+  clearInterval(timerInterval);currentAnswer=answer;lockBtns();btn.classList.add('selected');
   socket.emit('submitAnswer',{battleId:currentBattle.battleId,qIdx:currentBattle.qIdx,answer});
 }
 
-// ── 문제 결과 ──
-socket.on('questionResult',({qIdx,winnerId,correctAnswer,explanation,scores,p1Id,p2Id})=>{
+// ── 문제 결과 (강화) ──
+socket.on('questionResult',({qIdx,winnerId,correctAnswer,explanation,scores})=>{
   clearInterval(timerInterval);
   currentBattle.scores=scores;
-  const iWon=winnerId===myId;
-  const timeout=!winnerId;
+  const iWon=winnerId===myId,timeout=!winnerId;
 
-  // 보기 색상 처리
   document.querySelectorAll('.option-btn').forEach(btn=>{
-    const txt=btn.querySelector('span:last-child')?.textContent||btn.textContent;
-    const clean=txt.replace('⭕ ','').replace('❌ ','').trim();
-    if (clean===correctAnswer||txt.trim()===correctAnswer) btn.classList.add('correct');
-    else if (btn.classList.contains('selected')) btn.classList.add('wrong');
+    const txt=(btn.querySelector('span:last-child')?.textContent||btn.textContent).replace('⭕ ','').replace('❌ ','').trim();
+    if(txt===correctAnswer)btn.classList.add('correct');
+    else if(btn.classList.contains('selected'))btn.classList.add('wrong');
   });
 
   setTimeout(()=>{
-    document.getElementById('qr-icon').textContent=timeout?'⏰':iWon?'🎉':winnerId?'😅':'🤝';
-    document.getElementById('qr-title').textContent=
-      timeout?'시간 초과! (무효 문항)':iWon?'내가 먼저 맞췄어요! 🎉':winnerId?'상대방이 먼저 맞췄습니다':'둘 다 오답!';
-    document.getElementById('qr-sub').textContent=`✅ 정답: ${correctAnswer}`;
+    const banner=document.getElementById('qr-banner');
+    banner.style.background='';
+    if(timeout){
+      document.getElementById('qr-icon').textContent='⏰';
+      document.getElementById('qr-title').textContent='시간 초과! 무효 문항';
+      document.getElementById('qr-sub').textContent='⏰ 둘 다 6초를 넘겼어요';
+      banner.style.background='var(--gray-light)';
+    } else if(iWon){
+      document.getElementById('qr-icon').textContent='🎉';
+      document.getElementById('qr-title').textContent='먼저 맞췄어요!';
+      document.getElementById('qr-sub').textContent='✅ 정답: '+correctAnswer;
+      banner.style.background='var(--green-light)';
+    } else if(winnerId){
+      document.getElementById('qr-icon').textContent='😅';
+      document.getElementById('qr-title').textContent='상대방이 먼저!';
+      document.getElementById('qr-sub').textContent='✅ 정답: '+correctAnswer;
+      banner.style.background='var(--red-light)';
+    } else {
+      document.getElementById('qr-icon').textContent='🤷';
+      document.getElementById('qr-title').textContent='둘 다 오답!';
+      document.getElementById('qr-sub').textContent='✅ 정답: '+correctAnswer;
+    }
     document.getElementById('qr-explanation').textContent='💡 '+explanation;
     renderScoreBoard('qr-score-board',scores);
+    document.getElementById('qr-ice-msg').innerHTML='';
     showScreen('screen-q-result');
   },700);
 });
 
-// ── 배틀 종료 ──
-socket.on('battleEnd',({winner,finalScores,p1Id,p2Id,p1Name,p2Name,yourId,sector,sectorName})=>{
-  const iWon=winner===myId;
-  const isDraw=!winner;
-  document.getElementById('end-icon').textContent=isDraw?'🤝':iWon?'🏆':'💪';
-  document.getElementById('end-title').textContent=isDraw?'무승부!':iWon?'승리했습니다! 🎉':'아쉽지만 다음에!';
-  const oppId=yourId===p1Id?p2Id:p1Id;
-  const oppName=yourId===p1Id?p2Name:p1Name;
-  document.getElementById('end-sub').textContent=`${oppName}(${oppId}번)님과의 대결`;
-  document.getElementById('end-sector').textContent=`🎲 이번 문제 유형: ${sectorName}`;
-
-  const ids={[p1Id]:0,[p2Id]:0};
-  Object.assign(ids,finalScores);
-  const board=document.getElementById('end-score-board');
-  board.innerHTML=`
-    <div class="score-card me">
-      <div class="score-name">나 (${myName})</div>
-      <div class="score-num">${finalScores[myId]||0}</div>
-    </div>
-    <div class="vs-text">VS</div>
-    <div class="score-card">
-      <div class="score-name">${oppName}</div>
-      <div class="score-num">${finalScores[oppId]||0}</div>
-    </div>`;
-  showScreen('screen-battle-end');
-  currentBattle=null;
-});
-
-// ── 플레이어 목록 업데이트 ──
+// ── 배틀 종료 (일반 유저) ── 관리자 피드는 admin JS에서 처리
 socket.on('playersUpdate',(players)=>{
-  allPlayers=players; updateLobby(); renderRankings(); updateAdminStats();
+  allPlayers=players;
+  updateLobby();
+  renderRankings();
+  renderAdminDashboard();
+  renderBattleFeed();
+  renderDashRecentBattles();
+  // 제어탭 총 문제수
+  const ctrl=document.getElementById('ctrl-total-q');
+  if(ctrl&&adminQuizDB[1])ctrl.textContent=`📚 총 문제: OX ${adminQuizDB[1]?.length||0}개 / 3지 ${adminQuizDB[2]?.length||0}개 / 4지 ${adminQuizDB[3]?.length||0}개`;
 });
 
 // ── 순위 ──
-function showRankTab(tab) {
-  currentRankTab=tab;
+function showRankTab(tab){
   document.getElementById('rank-individual').style.display=tab==='individual'?'block':'none';
   document.getElementById('rank-team').style.display=tab==='team'?'block':'none';
   document.getElementById('tab-individual').classList.toggle('active',tab==='individual');
   document.getElementById('tab-team').classList.toggle('active',tab==='team');
   renderRankings();
 }
-function showIndividualRank(s) {
+function showIndividualRank(s){
   currentISort=s;
-  ['winrate','correct','battles'].forEach(k=>{
-    document.getElementById(`itab-${k}`)?.classList.toggle('active',k===s);
-  });
+  ['winrate','correct','battles'].forEach(k=>document.getElementById(`itab-${k}`)?.classList.toggle('active',k===s));
   renderIndividualTable();
 }
-function showTeamRank(s) {
+function showTeamRank(s){
   currentTSort=s;
-  ['winrate','correct','battles'].forEach(k=>{
-    document.getElementById(`ttab-${k}`)?.classList.toggle('active',k===s);
-  });
+  ['winrate','correct','battles'].forEach(k=>document.getElementById(`ttab-${k}`)?.classList.toggle('active',k===s));
   renderTeamTable();
 }
-function renderRankings() { renderIndividualTable(); renderTeamTable(); }
+function renderRankings(){renderIndividualTable();renderTeamTable();}
+function winRate(p){const t=p.wins+p.losses;return t>0?p.wins/t*100:0;}
+function medal(r){return r===1?'🥇':r===2?'🥈':r===3?'🥉':r+'위';}
 
-function winRate(p) {
-  const t=p.wins+p.losses; return t>0?(p.wins/t*100):0;
-}
-function medal(r) {
-  return r===1?'🥇':r===2?'🥈':r===3?'🥉':r+'위';
-}
-
-function renderIndividualTable() {
+function renderIndividualTable(){
   const ps=[...allPlayers];
-  if (currentISort==='winrate') ps.sort((a,b)=>winRate(b)-winRate(a)||b.correct-a.correct);
-  else if (currentISort==='correct') ps.sort((a,b)=>b.correct-a.correct||winRate(b)-winRate(a));
+  if(currentISort==='winrate')ps.sort((a,b)=>winRate(b)-winRate(a)||b.correct-a.correct);
+  else if(currentISort==='correct')ps.sort((a,b)=>b.correct-a.correct||winRate(b)-winRate(a));
   else ps.sort((a,b)=>b.battleCount-a.battleCount||b.correct-a.correct);
-
   const t=document.getElementById('individual-table');
-  t.innerHTML=`<thead><tr>
-    <th>순위</th><th>이름</th><th>팀</th><th>승률</th><th>승/패</th><th>정답</th><th>대결</th><th>접속</th>
-  </tr></thead>`;
+  t.innerHTML=`<thead><tr><th>순위</th><th>이름</th><th>팀</th><th>승률</th><th>승/패</th><th>정답</th><th>대결</th><th>접속</th></tr></thead>`;
   const tb=document.createElement('tbody');
   ps.forEach((p,i)=>{
-    const tr=document.createElement('tr');
-    tr.className=`rank-${i+1}`;
-    tr.innerHTML=`
-      <td><strong>${medal(i+1)}</strong></td>
-      <td style="font-weight:700">${p.name}${p.id===myId?' 👈':''}</td>
-      <td>${p.team}팀</td>
-      <td style="color:var(--blue);font-weight:700">${winRate(p).toFixed(0)}%</td>
-      <td>${p.wins}승 ${p.losses}패</td>
-      <td style="color:var(--green);font-weight:700">${p.correct}</td>
-      <td>${p.battleCount}</td>
-      <td><span class="online-dot ${p.online?'on':'off'}"></span></td>`;
+    const tr=document.createElement('tr');tr.className=`rank-${i+1}`;
+    tr.innerHTML=`<td>${medal(i+1)}</td><td style="font-weight:700">${p.name}${p.id===myId?' 👈':''}</td><td>${p.team}팀</td><td style="color:var(--blue);font-weight:700">${winRate(p).toFixed(0)}%</td><td>${p.wins}승 ${p.losses}패</td><td style="color:var(--green);font-weight:700">${p.correct}</td><td>${p.battleCount}</td><td><span class="online-dot ${p.online?'on':'off'}"></span></td>`;
     tb.appendChild(tr);
   });
   t.appendChild(tb);
 }
-
-function renderTeamTable() {
+function renderTeamTable(){
   const teams={};
   allPlayers.forEach(p=>{
-    if (!teams[p.team]) teams[p.team]={team:p.team,members:[],wins:0,losses:0,correct:0,battles:0};
-    const t=teams[p.team];
-    t.members.push(p); t.wins+=p.wins; t.losses+=p.losses;
-    t.correct+=p.correct; t.battles+=p.battleCount;
+    if(!teams[p.team])teams[p.team]={team:p.team,members:[],wins:0,losses:0,correct:0,battles:0};
+    const t=teams[p.team];t.members.push(p);t.wins+=p.wins;t.losses+=p.losses;t.correct+=p.correct;t.battles+=p.battleCount;
   });
-  const list=Object.values(teams).map(t=>({
-    ...t, avgWR:t.members.reduce((s,p)=>s+winRate(p),0)/(t.members.length||1)
-  }));
-  if (currentTSort==='winrate') list.sort((a,b)=>b.avgWR-a.avgWR);
-  else if (currentTSort==='correct') list.sort((a,b)=>b.correct-a.correct);
+  const list=Object.values(teams).map(t=>({...t,avgWR:t.members.reduce((s,p)=>s+winRate(p),0)/(t.members.length||1)}));
+  if(currentTSort==='winrate')list.sort((a,b)=>b.avgWR-a.avgWR);
+  else if(currentTSort==='correct')list.sort((a,b)=>b.correct-a.correct);
   else list.sort((a,b)=>b.battles-a.battles);
-
   const t=document.getElementById('team-table');
-  t.innerHTML=`<thead><tr>
-    <th>순위</th><th>팀</th><th>인원</th><th>평균승률</th><th>정답합계</th><th>대결합계</th>
-  </tr></thead>`;
+  t.innerHTML=`<thead><tr><th>순위</th><th>팀</th><th>인원</th><th>평균승률</th><th>정답합계</th><th>대결합계</th></tr></thead>`;
   const tb=document.createElement('tbody');
   list.forEach((t2,i)=>{
     const isMine=t2.members.some(m=>m.id===myId);
-    const tr=document.createElement('tr');
-    tr.className=`rank-${i+1}`;
-    tr.innerHTML=`
-      <td><strong>${medal(i+1)}</strong></td>
-      <td style="font-weight:700">${t2.team}팀${isMine?' 👈':''}</td>
-      <td>${t2.members.length}명</td>
-      <td style="color:var(--blue);font-weight:700">${t2.avgWR.toFixed(0)}%</td>
-      <td style="color:var(--green);font-weight:700">${t2.correct}</td>
-      <td>${t2.battles}</td>`;
+    const tr=document.createElement('tr');tr.className=`rank-${i+1}`;
+    tr.innerHTML=`<td>${medal(i+1)}</td><td style="font-weight:700">${t2.team}팀${isMine?' 👈':''}</td><td>${t2.members.length}명</td><td style="color:var(--blue);font-weight:700">${t2.avgWR.toFixed(0)}%</td><td style="color:var(--green);font-weight:700">${t2.correct}</td><td>${t2.battles}</td>`;
     tb.appendChild(tr);
   });
   t.appendChild(tb);
 }
 
 // ── 관리자 ──
+let adminSort='winrate';
+let battleFeed=[];
+let battlesDoneCount=0;
+
+// 시계
+function startClock(){
+  setInterval(()=>{
+    const now=new Date();
+    const el=document.getElementById('admin-clock');
+    if(el)el.textContent=now.toLocaleTimeString('ko-KR');
+  },1000);
+}
+
 socket.on('adminAuthResult',({success})=>{
-  if (success) {
+  if(success){
     showScreen('screen-admin');
     showNotif('✅ 관리자로 로그인 되었습니다.');
-    socket.emit('adminGetQuestions'); // 문제 목록 요청
+    socket.emit('adminGetQuestions');
+    socket.emit('getRankings');
+    startClock();
   } else showNotif('❌ 비밀번호가 틀렸습니다.');
 });
-function adminResetScores() {
-  if (!confirm('점수를 초기화하시겠습니까?\n(참가자 등록은 유지됩니다)')) return;
-  socket.emit('resetScores');
-}
-function adminResetAll() {
-  if (!confirm('전체 초기화하시겠습니까?\n모든 데이터가 삭제됩니다.')) return;
-  socket.emit('resetAll');
+
+function showAdminTab(tab){
+  ['dashboard','individual','team','feed','questions','control'].forEach(t=>{
+    const el=document.getElementById(`admin-tab-${t}`);
+    if(el)el.style.display=t===tab?'block':'none';
+    const btn=document.getElementById(`anav-${t}`);
+    if(btn)btn.classList.toggle('active',t===tab);
+  });
+  if(tab==='questions')socket.emit('adminGetQuestions');
+  if(tab==='dashboard'||tab==='individual'||tab==='team')renderAdminDashboard();
+  if(tab==='feed')renderBattleFeed();
 }
 
-// ── 관리자 문제 목록 ──
-let adminQuizDB = {};
-let currentQTab = 1;
+function updateAdminStats(){
+  const online=allPlayers.filter(p=>p.online).length;
+  const inBattle=allPlayers.filter(p=>p.inBattle).length;
+  const teams=new Set(allPlayers.map(p=>p.team)).size;
+  const totalCorrect=allPlayers.reduce((s,p)=>s+p.correct,0);
+  const hdr=document.getElementById('admin-header-stats');
+  if(hdr)hdr.textContent=`참가자 ${allPlayers.length}명 · 접속 ${online}명 · 대결중 ${inBattle}명`;
+  // KPI
+  _setKpi('kpi-total',allPlayers.length);
+  _setKpi('kpi-online',online);
+  _setKpi('kpi-battle',inBattle);
+  _setKpi('kpi-done',battlesDoneCount);
+  _setKpi('kpi-correct',totalCorrect);
+  _setKpi('kpi-teams',teams);
+}
+function _setKpi(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
 
-socket.on('adminQuestions', (db) => {
-  adminQuizDB = db;
+function renderAdminDashboard(){
+  updateAdminStats();
+  renderDashTop5();
+  renderAdminIndividual();
+  renderAdminTeam();
+  renderCurrentBattlers();
+  renderTodayStats();
+}
+
+// TOP5
+function renderDashTop5(){
+  const sorted=[...allPlayers].sort((a,b)=>winRate(b)-winRate(a)||b.correct-a.correct).slice(0,5);
+  const el=document.getElementById('dash-top5-individual');
+  if(!el)return;
+  if(!sorted.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:16px;text-align:center;font-size:13px">참가자 없음</div>';return;}
+  const max=winRate(sorted[0])||1;
+  el.innerHTML=sorted.map((p,i)=>`
+    <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+      <div class="rank-num">${medal(i+1)}</div>
+      <div class="rank-name">${p.name}<span class="rank-team-tag">${p.team}팀</span></div>
+      <div class="rank-stats">
+        <div class="rank-stat"><span class="val" style="color:#60A5FA">${winRate(p).toFixed(0)}%</span><span class="lbl">승률</span></div>
+        <div class="rank-stat"><span class="val" style="color:#4ADE80">${p.correct}</span><span class="lbl">정답</span></div>
+        <div class="rank-stat"><span class="val">${p.battleCount}</span><span class="lbl">대결</span></div>
+      </div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${winRate(p)/max*100}%"></div></div>
+    </div>`).join('');
+
+  // 팀 TOP5
+  const teams=buildTeams();
+  const tSorted=teams.sort((a,b)=>b.avgWR-a.avgWR).slice(0,5);
+  const el2=document.getElementById('dash-top5-team');
+  if(!el2)return;
+  const tMax=tSorted[0]?.avgWR||1;
+  el2.innerHTML=tSorted.map((t,i)=>`
+    <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+      <div class="rank-num">${medal(i+1)}</div>
+      <div class="rank-name">${t.team}팀</div>
+      <div class="rank-stats">
+        <div class="rank-stat"><span class="val" style="color:#60A5FA">${t.avgWR.toFixed(0)}%</span><span class="lbl">평균승률</span></div>
+        <div class="rank-stat"><span class="val" style="color:#4ADE80">${t.correct}</span><span class="lbl">정답합</span></div>
+        <div class="rank-stat"><span class="val">${t.members.length}</span><span class="lbl">인원</span></div>
+      </div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${t.avgWR/tMax*100}%;background:linear-gradient(90deg,#10B981,#3B82F6)"></div></div>
+    </div>`).join('');
+}
+
+// 최근 대결
+function renderDashRecentBattles(){
+  const el=document.getElementById('dash-recent-battles');
+  if(!el)return;
+  const recent=battleFeed.slice(0,6);
+  if(!recent.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:20px;text-align:center;font-size:13px;grid-column:1/-1">아직 완료된 대결이 없습니다</div>';return;}
+  el.innerHTML=recent.map(b=>`
+    <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px">${b.time} · ${b.sectorName||''}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <div style="text-align:center;flex:1">
+          <div style="font-size:13px;font-weight:700;color:${!b.isDraw&&b.winner===b.p1Id?'#4ADE80':'rgba(255,255,255,.7)'}">${b.p1Name}</div>
+          <div style="font-size:22px;font-weight:900;color:#fff">${b.s1}</div>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,.3);font-weight:700">VS</div>
+        <div style="text-align:center;flex:1">
+          <div style="font-size:13px;font-weight:700;color:${!b.isDraw&&b.winner===b.p2Id?'#4ADE80':'rgba(255,255,255,.7)'}">${b.p2Name}</div>
+          <div style="font-size:22px;font-weight:900;color:#fff">${b.s2}</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:6px;font-size:11px;font-weight:700;color:${b.isDraw?'#8B5CF6':'#F59E0B'}">${b.isDraw?'🤝 무승부':'🏆 '+b.winnerName+' 승리'}</div>
+    </div>`).join('');
+}
+
+// 개인 전체 순위
+function setAdminSort(s){
+  adminSort=s;
+  ['winrate','correct','battles'].forEach(k=>{
+    document.getElementById(`asort-${k}`)?.classList.toggle('active',k===s);
+  });
+  renderAdminIndividual();
+}
+function renderAdminIndividual(){
+  const el=document.getElementById('admin-individual-list');
+  if(!el)return;
+  const ps=[...allPlayers];
+  if(adminSort==='winrate')ps.sort((a,b)=>winRate(b)-winRate(a)||b.correct-a.correct);
+  else if(adminSort==='correct')ps.sort((a,b)=>b.correct-a.correct||winRate(b)-winRate(a));
+  else ps.sort((a,b)=>b.battleCount-a.battleCount||b.correct-a.correct);
+  if(!ps.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">참가자가 없습니다</div>';return;}
+  const maxWR=Math.max(...ps.map(p=>winRate(p)),1);
+  el.innerHTML=ps.map((p,i)=>`
+    <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+      <div class="rank-num" style="font-size:${i<3?'18':'14'}px">${medal(i+1)}</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:${p.online?'rgba(74,222,128,.15)':'rgba(255,255,255,.06)'};border:2px solid ${p.online?'#4ADE80':'rgba(255,255,255,.1)'};display:flex;align-items:center;justify-content:center;margin-left:8px;flex-shrink:0">
+        <span style="font-size:11px;font-weight:800;color:${p.online?'#4ADE80':'rgba(255,255,255,.3)'}">${p.id}</span>
+      </div>
+      <div class="rank-name" style="margin-left:8px">${p.name}<span class="rank-team-tag">${p.team}팀</span>${p.inBattle?'<span style="background:#F59E0B;color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px">대결중</span>':''}</div>
+      <div class="rank-stats">
+        <div class="rank-stat"><span class="val" style="color:#60A5FA">${winRate(p).toFixed(0)}%</span><span class="lbl">승률</span></div>
+        <div class="rank-stat"><span class="val">${p.wins}W</span><span class="lbl">승</span></div>
+        <div class="rank-stat"><span class="val">${p.losses}L</span><span class="lbl">패</span></div>
+        <div class="rank-stat"><span class="val" style="color:#4ADE80">${p.correct}</span><span class="lbl">정답</span></div>
+        <div class="rank-stat"><span class="val">${p.battleCount}</span><span class="lbl">대결</span></div>
+      </div>
+      <div class="rank-bar-wrap" style="width:90px"><div class="rank-bar" style="width:${winRate(p)/maxWR*100}%"></div></div>
+    </div>`).join('');
+}
+
+// 팀 순위 3열
+function buildTeams(){
+  const teams={};
+  allPlayers.forEach(p=>{
+    if(!teams[p.team])teams[p.team]={team:p.team,members:[],wins:0,losses:0,correct:0,battles:0};
+    const t=teams[p.team];t.members.push(p);t.wins+=p.wins;t.losses+=p.losses;t.correct+=p.correct;t.battles+=p.battleCount;
+  });
+  return Object.values(teams).map(t=>({...t,avgWR:t.members.reduce((s,p)=>s+winRate(p),0)/(t.members.length||1)}));
+}
+function renderAdminTeam(){
+  const teams=buildTeams();
+  const renderList=(elId,sortFn,valFn,valColor)=>{
+    const el=document.getElementById(elId);if(!el)return;
+    const sorted=[...teams].sort(sortFn);
+    if(!sorted.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:12px;text-align:center;font-size:13px">없음</div>';return;}
+    el.innerHTML=sorted.map((t,i)=>`
+      <div class="team-rank-row">
+        <div style="width:28px;text-align:center;font-size:15px;flex-shrink:0">${medal(i+1)}</div>
+        <div style="flex:1;color:#fff;font-size:14px;font-weight:700;margin-left:8px">${t.team}팀</div>
+        <div style="font-size:15px;font-weight:800;color:${valColor}">${valFn(t)}</div>
+      </div>`).join('');
+  };
+  renderList('team-rank-winrate',(a,b)=>b.avgWR-a.avgWR,t=>t.avgWR.toFixed(0)+'%','#60A5FA');
+  renderList('team-rank-correct',(a,b)=>b.correct-a.correct,t=>t.correct+'개','#4ADE80');
+  renderList('team-rank-battles',(a,b)=>b.battles-a.battles,t=>t.battles+'회','#F59E0B');
+
+  // 팀 상세
+  const el=document.getElementById('team-detail-grid');
+  if(!el)return;
+  const sorted=[...teams].sort((a,b)=>a.team-b.team);
+  el.innerHTML=sorted.map(t=>`
+    <div class="team-detail-card">
+      <div class="team-detail-hdr">${t.team}팀 <span style="color:rgba(255,255,255,.4);font-size:12px">${t.members.length}명 · 승률 ${t.avgWR.toFixed(0)}%</span></div>
+      ${t.members.sort((a,b)=>winRate(b)-winRate(a)).map(m=>`
+        <div class="team-member-row">
+          <span>${m.name}<span style="color:rgba(255,255,255,.3);font-size:10px;margin-left:4px">#${m.id}</span></span>
+          <span style="color:#60A5FA;font-weight:700">${winRate(m).toFixed(0)}% <span style="color:rgba(255,255,255,.3)">/ ${m.correct}정답</span></span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// 대결 피드
+function renderBattleFeed(){
+  const el=document.getElementById('battle-feed-list');
+  if(!el)return;
+  if(!battleFeed.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">아직 완료된 대결이 없습니다</div>';return;}
+  el.innerHTML=battleFeed.map(b=>`
+    <div class="feed-card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:11px;color:rgba(255,255,255,.4)">${b.time}</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.4)">${b.sectorName||''}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;text-align:center">
+          <div style="font-size:14px;font-weight:700;color:${!b.isDraw&&b.winner===b.p1Id?'#4ADE80':'rgba(255,255,255,.8)'}">${b.p1Name}</div>
+          <div style="font-size:28px;font-weight:900;color:#fff">${b.s1}</div>
+        </div>
+        <div style="font-size:20px;color:rgba(255,255,255,.3);font-weight:900">VS</div>
+        <div style="flex:1;text-align:center">
+          <div style="font-size:14px;font-weight:700;color:${!b.isDraw&&b.winner===b.p2Id?'#4ADE80':'rgba(255,255,255,.8)'}">${b.p2Name}</div>
+          <div style="font-size:28px;font-weight:900;color:#fff">${b.s2}</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;font-size:12px;font-weight:700;padding:4px;border-radius:6px;background:${b.isDraw?'rgba(139,92,246,.2)':'rgba(74,222,128,.1)'};color:${b.isDraw?'#A78BFA':'#4ADE80'}">
+        ${b.isDraw?'🤝 무승부':'🏆 '+b.winnerName+' 승리!'}
+      </div>
+    </div>`).join('');
+  renderCurrentBattlers();
+  renderTodayStats();
+}
+
+function renderCurrentBattlers(){
+  const el=document.getElementById('current-battlers');
+  if(!el)return;
+  const battlers=allPlayers.filter(p=>p.inBattle);
+  if(!battlers.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:12px;text-align:center;font-size:13px">현재 대결 없음</div>';return;}
+  el.innerHTML=battlers.map(p=>`<div class="battler-row"><div class="battler-dot"></div><span>${p.name}(${p.id}번) · ${p.team}팀</span></div>`).join('');
+}
+
+function renderTodayStats(){
+  const el=document.getElementById('today-stats');
+  if(!el)return;
+  const total=allPlayers.reduce((s,p)=>s+p.correct,0);
+  const avgWR=allPlayers.length?allPlayers.reduce((s,p)=>s+winRate(p),0)/allPlayers.length:0;
+  el.innerHTML=`
+    <div style="color:rgba(255,255,255,.7);font-size:13px;line-height:2.2;margin-top:4px">
+      <div>🏁 완료된 대결: <strong style="color:#fff">${battlesDoneCount}회</strong></div>
+      <div>✅ 누적 정답수: <strong style="color:#4ADE80">${total}개</strong></div>
+      <div>📈 평균 승률: <strong style="color:#60A5FA">${avgWR.toFixed(1)}%</strong></div>
+      <div>👥 참가자: <strong style="color:#fff">${allPlayers.length}명</strong></div>
+    </div>`;
+}
+
+
+socket.on('adminQuestions',(db)=>{
+  adminQuizDB=db;
   renderQList(currentQTab);
+  const ctrl=document.getElementById('ctrl-total-q');
+  if(ctrl)ctrl.textContent=`📚 총 문제: OX ${db[1]?.length||0}개 / 3지 ${db[2]?.length||0}개 / 4지 ${db[3]?.length||0}개`;
+});
+socket.on('adminMsg',(msg)=>{
+  const box=document.getElementById('admin-msg-box');
+  if(box){box.style.display='block';box.textContent=msg;setTimeout(()=>box.style.display='none',4000);}
+  showNotif(msg);
 });
 
-function showQTab(n) {
-  currentQTab = n;
-  [1,2,3].forEach(i => {
-    document.getElementById(`qtab-${i}`)?.classList.toggle('active', i===n);
+function renderQList(sector){
+  const wrap=document.getElementById('q-list-wrap');
+  if(!wrap)return;
+  const qs=adminQuizDB[sector];
+  [1,2,3].forEach(i=>{
+    const c=document.getElementById(`qtab-${i}-count`);
+    if(c)c.textContent=`(${adminQuizDB[i]?.length||0})`;
   });
-  renderQList(n);
-}
-
-function renderQList(sector) {
-  const wrap = document.getElementById('q-list-wrap');
-  if (!wrap) return;
-  const qs = adminQuizDB[sector];
-  if (!qs || qs.length === 0) {
-    wrap.innerHTML = '<p class="text-gray" style="text-align:center;padding:16px">문제가 없습니다</p>';
-    return;
+  const titleEl=document.getElementById('q-list-title');
+  const names={1:'⭕ OX 퀴즈',2:'3️⃣ 3지 선다',3:'4️⃣ 4지 선다'};
+  if(titleEl)titleEl.textContent=names[sector]+' 문제 목록';
+  const countEl=document.getElementById('q-count');
+  if(!qs||qs.length===0){
+    wrap.innerHTML='<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">문제가 없습니다. 추가하거나 엑셀을 업로드하세요.</div>';
+    if(countEl)countEl.textContent='0문제';return;
   }
-  const sectorColor = ['','var(--green)','var(--gold)','var(--blue)'][sector];
-  const sectorBg = ['','var(--green-light)','var(--gold-light)','var(--blue-light)'][sector];
-  wrap.innerHTML = qs.map((q, i) => `
-    <div style="border:1px solid #E5E7EB;border-radius:12px;padding:12px;margin-bottom:8px;background:#fff">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="background:${sectorBg};color:${sectorColor};border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700">Q${i+1}</span>
+  if(countEl)countEl.textContent=`총 ${qs.length}문제`;
+  const colors={1:'#10B981',2:'#F59E0B',3:'#3B82F6'};
+  const fc=colors[sector];
+  wrap.innerHTML=qs.map((q,i)=>`
+    <div class="q-card-dark">
+      <span style="background:${fc};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700;display:inline-block;margin-bottom:8px">Q${i+1}</span>
+      <div class="q-text">${q.q}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
+        ${q.opts.map(o=>`<span style="padding:3px 10px;border-radius:8px;font-size:12px;font-weight:600;background:${o===q.ans?'rgba(74,222,128,.15)':'rgba(255,255,255,.06)'};color:${o===q.ans?'#4ADE80':'rgba(255,255,255,.6)'};border:1px solid ${o===q.ans?'rgba(74,222,128,.4)':'transparent'}">${o===q.ans?'✅ ':''}${o}</span>`).join('')}
       </div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:8px;line-height:1.5">${q.q}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-        ${q.opts.map(o => `
-          <span style="padding:4px 10px;border-radius:8px;font-size:13px;font-weight:600;
-            background:${o===q.ans?'var(--green-light)':'var(--gray-light)'};
-            color:${o===q.ans?'var(--green)':'var(--gray)'};
-            border:1px solid ${o===q.ans?'var(--green)':'transparent'}">
-            ${o===q.ans?'✅ ':''}${o}
-          </span>`).join('')}
-      </div>
-      <div style="font-size:12px;color:var(--blue-dark);background:var(--blue-light);border-radius:8px;padding:6px 10px">
-        💡 ${q.exp}
+      <div class="q-exp-dark">💡 ${q.exp}</div>
+      <div style="display:flex;gap:6px">
+        <button style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60A5FA;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer" onclick="openEditModal(${sector},${i})">✏️ 수정</button>
+        <button style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#EF4444;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer" onclick="deleteQuestion(${sector},${i})">🗑 삭제</button>
       </div>
     </div>`).join('');
 }
-function updateAdminStats() {
-  const el=document.getElementById('admin-stats');
-  if (!el) return;
-  const online=allPlayers.filter(p=>p.online).length;
-  const inBattle=allPlayers.filter(p=>p.inBattle).length;
-  el.innerHTML=`총 참가자: <strong>${allPlayers.length}명</strong> &nbsp;|&nbsp; 접속중: <strong>${online}명</strong> &nbsp;|&nbsp; 대결중: <strong>${inBattle}명</strong>`;
+
+function showQTab(n){
+  currentQTab=n;
+  [1,2,3].forEach(i=>{
+    document.getElementById(`qtab-${i}`)?.classList.toggle('active',i===n);
+  });
+  renderQList(n);
 }
-socket.on('scoresReset',()=>{ showNotif('✅ 점수가 초기화되었습니다.'); updateLobby(); });
+function openAddModal(){
+  document.getElementById('modal-mode').value='add';
+  document.getElementById('modal-title').textContent='➕ 문제 추가';
+  document.getElementById('modal-q').value='';
+  document.getElementById('modal-ans').value='';
+  document.getElementById('modal-exp').value='';
+  document.getElementById('modal-sector-select').value=currentQTab;
+  updateModalOpts();
+  document.getElementById('q-modal').classList.add('show');
+}
+
+// 문제 수정
+function openEditModal(sector,index){
+  const q=adminQuizDB[sector][index];if(!q)return;
+  document.getElementById('modal-mode').value='edit';
+  document.getElementById('modal-sector').value=sector;
+  document.getElementById('modal-index').value=index;
+  document.getElementById('modal-title').textContent='✏️ 문제 수정';
+  document.getElementById('modal-sector-select').value=sector;
+  document.getElementById('modal-sector-select').disabled=true;
+  document.getElementById('modal-q').value=q.q;
+  document.getElementById('modal-ans').value=q.ans;
+  document.getElementById('modal-exp').value=q.exp;
+  updateModalOpts(q.opts);
+  document.getElementById('q-modal').classList.add('show');
+}
+
+function updateModalOpts(existingOpts){
+  const sector=parseInt(document.getElementById('modal-sector-select').value);
+  const n=sector===1?2:sector===2?3:4;
+  const labels=sector===1?['O','X']:['보기1','보기2','보기3','보기4'];
+  const wrap=document.getElementById('modal-opts-wrap');
+  wrap.innerHTML='<div class="label">보기</div>';
+  for(let i=0;i<n;i++){
+    const inp=document.createElement('input');
+    inp.type='text';inp.id=`modal-opt-${i}`;
+    inp.placeholder=labels[i];
+    if(existingOpts&&existingOpts[i])inp.value=existingOpts[i];
+    else if(sector===1)inp.value=labels[i];
+    wrap.appendChild(inp);
+  }
+}
+
+function submitModal(){
+  const mode=document.getElementById('modal-mode').value;
+  const sector=parseInt(document.getElementById('modal-sector-select').value);
+  const n=sector===1?2:sector===2?3:4;
+  const opts=[];
+  for(let i=0;i<n;i++){
+    const v=document.getElementById(`modal-opt-${i}`)?.value.trim();
+    if(!v)return showNotif(`⚠️ 보기${i+1}을 입력해주세요`);
+    opts.push(v);
+  }
+  const q={
+    q:document.getElementById('modal-q').value.trim(),
+    opts,
+    ans:document.getElementById('modal-ans').value.trim(),
+    exp:document.getElementById('modal-exp').value.trim()
+  };
+  if(!q.q)return showNotif('⚠️ 문제를 입력해주세요');
+  if(!q.ans)return showNotif('⚠️ 정답을 입력해주세요');
+  if(!opts.includes(q.ans))return showNotif('⚠️ 정답이 보기에 포함되어야 합니다');
+
+  if(mode==='add'){socket.emit('adminAddQuestion',{sector,q});}
+  else{
+    const index=parseInt(document.getElementById('modal-index').value);
+    socket.emit('adminEditQuestion',{sector,index,q});
+  }
+  closeModal();
+}
+
+function closeModal(){
+  document.getElementById('q-modal').classList.remove('show');
+  document.getElementById('modal-sector-select').disabled=false;
+}
+
+function deleteQuestion(sector,index){
+  const q=adminQuizDB[sector][index];
+  if(!q)return;
+  if(!confirm(`삭제하시겠습니까?\n\n"${q.q.slice(0,40)}..."`))return;
+  socket.emit('adminDeleteQuestion',{sector,index});
+}
+
+// ── 엑셀 업로드 ──
+function handleExcelUpload(event){
+  const file=event.target.files[0];if(!file)return;
+  const statusEl=document.getElementById('upload-status');
+  statusEl.style.display='block';statusEl.textContent='📊 파일 읽는 중...';
+
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      const newDB={1:[],2:[],3:[]};
+
+      wb.SheetNames.forEach(sheetName=>{
+        const ws=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        // 4행부터 데이터 (1:제목,2:안내,3:헤더)
+        const dataRows=rows.slice(3).filter(r=>r[1]&&String(r[1]).trim());
+
+        if(sheetName.includes('OX')||sheetName.includes('1')){
+          dataRows.forEach(r=>{
+            const q=String(r[1]).trim(),ans=String(r[2]).trim().toUpperCase(),exp=String(r[3]||'').trim();
+            if(q&&(ans==='O'||ans==='X'))newDB[1].push({q,opts:['O','X'],ans,exp});
+          });
+        } else if(sheetName.includes('3지')||sheetName.includes('2')){
+          dataRows.forEach(r=>{
+            const q=String(r[1]).trim();
+            const opts=[r[2],r[3],r[4]].map(o=>String(o||'').trim()).filter(Boolean);
+            const ans=String(r[5]||'').trim(),exp=String(r[6]||'').trim();
+            if(q&&opts.length>=2&&ans)newDB[2].push({q,opts,ans,exp});
+          });
+        } else if(sheetName.includes('4지')||sheetName.includes('3')){
+          dataRows.forEach(r=>{
+            const q=String(r[1]).trim();
+            const opts=[r[2],r[3],r[4],r[5]].map(o=>String(o||'').trim()).filter(Boolean);
+            const ans=String(r[6]||'').trim(),exp=String(r[7]||'').trim();
+            if(q&&opts.length>=2&&ans)newDB[3].push({q,opts,ans,exp});
+          });
+        }
+      });
+
+      const total=newDB[1].length+newDB[2].length+newDB[3].length;
+      if(total===0){statusEl.textContent='❌ 문제를 찾을 수 없습니다. 서식 파일을 확인하세요.';return;}
+
+      statusEl.textContent=`✅ OX:${newDB[1].length}개 / 3지:${newDB[2].length}개 / 4지:${newDB[3].length}개 → 서버에 적용 중...`;
+      socket.emit('adminImportQuestions',newDB);
+      setTimeout(()=>{statusEl.style.display='none';},4000);
+    }catch(err){
+      statusEl.textContent='❌ 파일 읽기 실패: '+err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value='';
+}
+
+function adminResetScores(){if(!confirm('점수를 초기화하시겠습니까?\n(참가자 등록은 유지됩니다)'))return;socket.emit('resetScores');}
+function adminResetAll(){if(!confirm('전체 초기화하시겠습니까?\n모든 데이터가 삭제됩니다.'))return;socket.emit('resetAll');}
+socket.on('scoresReset',()=>{
+  showNotif('✅ 점수가 초기화되었습니다.');
+  updateLobby();
+  setFinalStageUI(false);
+});
 socket.on('serverReset',()=>{
   showNotif('✅ 전체 초기화되었습니다.');
-  myId=null; myName=''; myTeam=0;
+  myId=null;myName='';myTeam=0;
+  setFinalStageUI(false);
   showScreen('screen-welcome');
+});
+
+// ── 막판뒤집기 ──
+let isFinalStage = false;
+
+function setFinalStageUI(active){
+  isFinalStage = active;
+  const banner = document.getElementById('final-stage-banner');
+  const indicator = document.getElementById('final-stage-indicator');
+  const lobbyNotice = document.getElementById('final-stage-lobby');
+
+  if(banner) banner.classList.toggle('show', active);
+  document.querySelectorAll('.screen.active').forEach(s=>{
+    s.classList.toggle('has-banner', active);
+  });
+  if(indicator){
+    indicator.textContent = active ? '🔥 ON' : 'OFF';
+    indicator.style.background = active ? 'rgba(239,68,68,.3)' : 'rgba(255,255,255,.1)';
+    indicator.style.color = active ? '#F87171' : 'rgba(255,255,255,.4)';
+  }
+  if(lobbyNotice) lobbyNotice.style.display = active ? 'block' : 'none';
+  const btnOn = document.getElementById('btn-final-on');
+  const btnOff = document.getElementById('btn-final-off');
+  if(btnOn) btnOn.style.opacity = active ? '0.5' : '1';
+  if(btnOff) btnOff.style.opacity = active ? '1' : '0.5';
+}
+
+socket.on('systemState',({finalStage})=>setFinalStageUI(finalStage));
+socket.on('finalStageChanged',({active})=>{
+  setFinalStageUI(active);
+  const currentScreen = document.querySelector('.screen.active');
+  if(currentScreen) currentScreen.classList.toggle('has-banner', active);
+});
+
+socket.on('systemAnnounce',(msg)=>{
+  const wrap = document.getElementById('announce-wrap');
+  if(!wrap)return;
+  const el = document.createElement('div');
+  el.style.cssText='background:linear-gradient(135deg,#DC2626,#B91C1C);color:#fff;font-size:14px;font-weight:700;padding:12px 18px;border-radius:14px;margin-bottom:8px;text-align:center;box-shadow:0 4px 20px rgba(239,68,68,.4);animation:slideIn .3s ease';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(), 5000);
+  showNotif(msg, 4000);
+});
+
+socket.on('finalStagePenalty',({msg, newWins})=>{
+  document.getElementById('penalty-msg').textContent = msg + ` (현재 승수: ${newWins})`;
+  document.getElementById('penalty-popup').classList.add('show');
+  updateLobby();
+});
+
+// 막판뒤집기 대결 수락 수신 (finalStageAuto)
+socket.on('challengeRejected',({opponentName, finalStageAuto})=>{
+  showScreen('screen-lobby');
+  if(finalStageAuto){
+    showNotif(`⚡ 막판뒤집기: ${opponentName||'상대방'}이 거부로 자동 패배 처리됨`, 4000);
+  } else {
+    showNotif(`😥 ${opponentName||'상대방'}이 거절했습니다.`);
+  }
+});
+
+function adminSetFinalStage(active){
+  socket.emit('adminSetFinalStage', active);
+}
+
+function adminApplyPenalty(){
+  const name = document.getElementById('penalty-name-input').value.trim();
+  if(!name){showNotif('⚠️ 이름을 입력하세요');return;}
+  if(!confirm(`"${name}" 에게 막판뒤집기 거부 패널티를 적용하시겠습니까?\n(보유 승수 ×3 차감)`))return;
+  socket.emit('adminPenalizeRefuser', name);
+  document.getElementById('penalty-name-input').value='';
+}
+
+// 배틀 종료 시 막판뒤집기 배수 표시
+socket.on('battleEnd',(data)=>{
+  const {winner,finalScores,p1Id,p2Id,p1Name,p2Name,yourId,sectorName,finalStage,winMulti}=data;
+
+  // 관리자 피드에 추가
+  battlesDoneCount++;
+  battleFeed.unshift({
+    time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+    winner,winnerName:winner===p1Id?p1Name:winner===p2Id?p2Name:null,
+    isDraw:!winner,p1Name,p2Name,p1Id,p2Id,finalScores,sectorName,
+    finalStage,winMulti,s1:finalScores[p1Id]||0,s2:finalScores[p2Id]||0
+  });
+  if(battleFeed.length>30)battleFeed.pop();
+  renderAdminDashboard();renderBattleFeed();renderDashRecentBattles();
+
+  // 일반 유저 화면
+  if(!myId||yourId===undefined)return;
+  const iWon=winner===myId,isDraw=!winner;
+  const oppId=yourId===p1Id?p2Id:p1Id;
+  const oppName=yourId===p1Id?p2Name:p1Name;
+  const banner=document.getElementById('end-banner');
+  if(isDraw)banner.className='draw-banner text-center';
+  else if(iWon)banner.className='win-banner text-center';
+  else banner.className='lose-banner text-center';
+  const mult=winMulti>1?` (×${winMulti} 막판뒤집기!)`:'';
+  document.getElementById('end-icon').textContent=isDraw?'🤝':iWon?'🏆':'💪';
+  document.getElementById('end-title').textContent=isDraw?'무승부!':iWon?`승리했습니다!${mult}`:'아쉽지만 분발!';
+  document.getElementById('end-sub').textContent=`${oppName}(${oppId}번)님과의 대결`;
+  document.getElementById('end-sector').textContent=`🎲 ${sectorName}${finalStage?' 🔥막판뒤집기':''}`;
+  const board=document.getElementById('end-score-board');
+  board.innerHTML=`<div class="score-card me"><div class="score-name">나 (${myName})</div><div class="score-num">${finalScores[myId]||0}</div></div><div class="vs-text">VS</div><div class="score-card"><div class="score-name">${oppName}</div><div class="score-num">${finalScores[oppId]||0}</div></div>`;
+  if(winMulti>1&&iWon){
+    document.getElementById('end-ice-msg').innerHTML=`<div class="ice-msg" style="background:linear-gradient(135deg,#EF4444,#DC2626)">🔥 막판뒤집기 승리! +${winMulti}점 획득!</div>`;
+  } else {
+    const iceMsg=isDraw?rnd(ICE_DRAW):iWon?rnd(ICE_WIN):rnd(ICE_LOSE);
+    document.getElementById('end-ice-msg').innerHTML=`<div class="ice-msg">${iceMsg}</div>`;
+  }
+  const me=allPlayers.find(p=>p.id===myId);
+  if(me){
+    document.getElementById('end-stat-wins').textContent=me.wins;
+    document.getElementById('end-stat-battles').textContent=me.battleCount;
+    const wr=me.wins+me.losses>0?(me.wins/(me.wins+me.losses)*100).toFixed(0):0;
+    document.getElementById('end-stat-wr').textContent=wr+'%';
+  }
+  showScreen('screen-battle-end');currentBattle=null;
 });
 </script>
 </body>
