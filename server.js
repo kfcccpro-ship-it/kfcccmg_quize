@@ -278,7 +278,13 @@ let QUIZ_DB = {
 const SECTOR_NAMES = {1:'섹터1 OX퀴즈',2:'섹터2 3지선다',3:'섹터3 4지선다'};
 let state = {
   players:{}, battles:{}, nextPlayerId:1, pendingChallenges:{},
-  finalStage: false   // 막판뒤집기 모드
+  finalStage: false,
+  // 스테이지 타이머
+  stageTimer: null,       // setInterval 핸들
+  stageRemaining: 0,      // 남은 초
+  stageDuration: 600,     // 기본 10분(초)
+  stageActive: false,     // 타이머 진행 중?
+  lockNew: false          // 20초 이내 → 신규 대결 잠금
 };
 
 function getSocket(sid){return io.sockets.sockets.get(sid);}
@@ -289,7 +295,74 @@ function publicPlayers(){return Object.values(state.players).map(p=>({id:p.id,na
 function emitRankings(){io.emit('playersUpdate',publicPlayers());}
 function emitFinalStage(){io.emit('finalStageChanged',{active:state.finalStage});}
 function emitSystemState(socket){
-  (socket||io).emit('systemState',{finalStage:state.finalStage});
+  (socket||io).emit('systemState',{
+    finalStage:state.finalStage,
+    stageActive:state.stageActive,
+    stageRemaining:state.stageRemaining,
+    stageDuration:state.stageDuration,
+    lockNew:state.lockNew
+  });
+}
+
+// ── 스테이지 타이머 ──
+function startStageTimer(minutes){
+  if(state.stageTimer) clearInterval(state.stageTimer);
+  state.stageDuration = (minutes||10)*60;
+  state.stageRemaining = state.stageDuration;
+  state.stageActive = true;
+  state.lockNew = false;
+  broadcastStageUpdate();
+  state.stageTimer = setInterval(()=>{
+    state.stageRemaining--;
+    if(state.stageRemaining <= 20 && !state.lockNew){
+      state.lockNew = true;
+      io.emit('stageWarning', {remaining: state.stageRemaining});
+    }
+    broadcastStageUpdate();
+    if(state.stageRemaining <= 0){
+      clearInterval(state.stageTimer);
+      state.stageTimer = null;
+      state.stageActive = false;
+      state.lockNew = false;
+      // 진행 중 대결 무효 처리
+      Object.values(state.battles).forEach(b=>{
+        if(b.status==='active'){
+          if(b.timer) clearTimeout(b.timer);
+          b.status='finished';
+          b.players.forEach(pid=>{
+            const p=state.players[pid];
+            if(p){p.inBattle=false;}
+            getSocket(state.players[pid]?.socketId)?.emit('battleVoid',{reason:'스테이지 시간 종료'});
+          });
+        }
+      });
+      // 대기 중 도전 취소
+      Object.entries(state.pendingChallenges).forEach(([cId,oppId])=>{
+        getSocket(state.players[oppId]?.socketId)?.emit('challengeCancelled');
+        delete state.pendingChallenges[cId];
+      });
+      io.emit('stageEnd',{});
+      emitRankings();
+    }
+  },1000);
+}
+
+function stopStageTimer(){
+  if(state.stageTimer) clearInterval(state.stageTimer);
+  state.stageTimer=null;
+  state.stageActive=false;
+  state.lockNew=false;
+  state.stageRemaining=0;
+  broadcastStageUpdate();
+}
+
+function broadcastStageUpdate(){
+  io.emit('stageUpdate',{
+    active:state.stageActive,
+    remaining:state.stageRemaining,
+    duration:state.stageDuration,
+    lockNew:state.lockNew
+  });
 }
 
 function startBattle(p1Id,p2Id){
@@ -365,14 +438,14 @@ io.on('connection',(socket)=>{
     state.players[id]={id,name:name.trim(),team:parseInt(team),socketId:socket.id,wins:0,losses:0,correct:0,total:0,battled:[],online:true,inBattle:false};
     socket.playerId=id;
     socket.emit('registered',{id,player:state.players[id]});
-    socket.emit('systemState',{finalStage:state.finalStage});
+    emitSystemState(socket);
     emitRankings();
   });
   socket.on('reconnectPlayer',(id)=>{
     const p=state.players[id];
     if(p){p.socketId=socket.id;p.online=true;socket.playerId=id;
       socket.emit('reconnected',{player:p});
-      socket.emit('systemState',{finalStage:state.finalStage});
+      emitSystemState(socket);
       emitRankings();}
     else socket.emit('reconnectFailed');
   });
@@ -383,10 +456,11 @@ io.on('connection',(socket)=>{
     if(me.battled.includes(oppId)||opp.battled.includes(socket.playerId))return socket.emit('challengeError','이미 대결한 상대입니다.');
     if(me.inBattle)return socket.emit('challengeError','현재 대결 중입니다.');
     if(opp.inBattle)return socket.emit('challengeError','상대방이 현재 대결 중입니다.');
+    if(state.lockNew)return socket.emit('challengeError','⏰ 스테이지 종료 20초 전입니다. 새 대결을 시작할 수 없습니다.');
     state.pendingChallenges[socket.playerId]=oppId;
     const os2=getSocket(opp.socketId);
     if(!os2)return socket.emit('challengeError','상대방이 현재 접속 중이 아닙니다.');
-    os2.emit('challenged',{challengerId:me.id,challengerName:me.name,challengerTeam:me.team});
+    os2.emit('challenged',{challengerId:me.id,challengerName:me.name,challengerTeam:me.team,finalStage:state.finalStage});
     socket.emit('challengeSent',{opponentId:oppId,opponentName:opp.name});
   });
   socket.on('acceptChallenge',(cId)=>{
@@ -491,6 +565,7 @@ io.on('connection',(socket)=>{
   socket.on('adminSetFinalStage',(active)=>{
     if(!socket.isAdmin)return;
     state.finalStage=!!active;
+    if(!active){ stopStageTimer(); }
     const msg = active
       ? '🔥 막판뒤집기 스테이지 시작! 승수 ×3 적용!'
       : '✅ 막판뒤집기 스테이지 종료. 일반 모드로 복귀.';
@@ -499,7 +574,44 @@ io.on('connection',(socket)=>{
     socket.emit('adminMsg', msg);
   });
 
-  // 관리자 수동 패널티 (거부자 이름 입력)
+  // 참가자가 직접 거부자 이름 신고
+  socket.on('reportRefuser',({refuserName})=>{
+    const reporter = state.players[socket.playerId];
+    if(!reporter) return;
+    const refuser = Object.values(state.players).find(p=>p.name===refuserName.trim());
+    if(!refuser){socket.emit('reportResult',{success:false,msg:`"${refuserName}" 이름을 찾을 수 없습니다.`});return;}
+    if(!state.finalStage){socket.emit('reportResult',{success:false,msg:'막판뒤집기 모드가 아닙니다.'});return;}
+    const penalty = refuser.wins * 3;
+    refuser.wins = Math.max(0, refuser.wins - penalty);
+    refuser.losses += 3;
+    const msg = `⚡ ${reporter.name}이(가) 신고: ${refuser.name}이 막판뒤집기 거부! 승수 ${penalty}점 차감!`;
+    io.emit('systemAnnounce', msg);
+    getSocket(refuser.socketId)?.emit('finalStagePenalty',{
+      msg:`❌ ${reporter.name}에게 막판뒤집기 거부 신고를 받았습니다. 승수 ${penalty}점 차감.`,
+      newWins: refuser.wins
+    });
+    emitRankings();
+    socket.emit('reportResult',{success:true, msg:`✅ ${refuser.name} 패널티 적용 완료! (${penalty}점 차감)`});
+  });
+
+  // 관리자: 스테이지 타이머 시작
+  socket.on('adminStartStage',({minutes})=>{
+    if(!socket.isAdmin)return;
+    startStageTimer(minutes||10);
+    socket.emit('adminMsg',`✅ 스테이지 타이머 시작! ${minutes||10}분`);
+  });
+  // 관리자: 타이머 중지
+  socket.on('adminStopStage',()=>{
+    if(!socket.isAdmin)return;
+    stopStageTimer();
+    socket.emit('adminMsg','⏹ 스테이지 타이머 중지');
+  });
+  // 관리자: 타이머 시간 설정만 (시작 X)
+  socket.on('adminSetStageDuration',({minutes})=>{
+    if(!socket.isAdmin)return;
+    state.stageDuration=(minutes||10)*60;
+    socket.emit('adminMsg',`⏱ 스테이지 기본 시간: ${minutes||10}분`);
+  });
   socket.on('adminPenalizeRefuser',(playerName)=>{
     if(!socket.isAdmin)return;
     const p = Object.values(state.players).find(p=>p.name===playerName.trim());

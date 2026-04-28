@@ -119,6 +119,42 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
 .q-card .q-opts{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
 
 /* ── 관리자 대시보드 (PC 투사용) ── */
+/* ── 스테이지 타이머 바 ── */
+.stage-timer-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:600;height:52px;background:#1E293B;align-items:center;justify-content:center;gap:12px;box-shadow:0 2px 12px rgba(0,0,0,.4);}
+.stage-timer-bar.show{display:flex;}
+.stage-timer-bar.warning{background:linear-gradient(90deg,#7F1D1D,#991B1B,#7F1D1D);animation:bannerScroll 1.5s linear infinite;}
+.timer-progress-wrap{width:140px;height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;}
+.timer-progress{height:100%;border-radius:4px;background:#4ADE80;transition:width 1s linear,background .5s;}
+.timer-text{color:#fff;font-size:18px;font-weight:900;letter-spacing:1px;min-width:56px;text-align:center;font-variant-numeric:tabular-nums;}
+/* 막판뒤집기 참가자 긴장 효과 */
+.final-mode-active .screen.active{box-shadow:inset 0 0 0 5px rgba(239,68,68,.7)!important;}
+.final-mode-active .header{background:linear-gradient(135deg,#DC2626,#991B1B)!important;animation:headerPulse 2s ease-in-out infinite;}
+@keyframes headerPulse{0%,100%{opacity:1}50%{opacity:.85}}
+.final-mode-active .btn-primary{background:linear-gradient(135deg,#DC2626,#B91C1C)!important;}
+/* 관리자 플로팅 패널 */
+.admin-quick-panel{display:none;position:fixed;bottom:72px;right:16px;z-index:700;background:#1E293B;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:230px;}
+.admin-quick-panel.show{display:block;}
+.aqp-title{color:rgba(255,255,255,.4);font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;}
+.aqp-toggle{width:100%;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:8px;transition:all .2s;}
+.aqp-toggle.off{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#F87171;}
+.aqp-toggle.on{background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;box-shadow:0 4px 16px rgba(239,68,68,.4);}
+.aqp-timer-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;}
+.aqp-num-input{width:56px;padding:8px 6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:14px;font-weight:700;outline:none;text-align:center;}
+.aqp-mini-btn{flex:1;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);font-size:12px;font-weight:700;cursor:pointer;}
+.aqp-mini-btn:hover{background:rgba(255,255,255,.14);}
+.aqp-mini-btn.danger{border-color:rgba(239,68,68,.3);color:#F87171;}
+/* 관리자 FAB 버튼 */
+.admin-fab{display:none;position:fixed;bottom:16px;right:16px;z-index:710;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#1D4ED8);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(59,130,246,.5);transition:all .2s;}
+.admin-fab.show{display:flex;align-items:center;justify-content:center;}
+.admin-fab.final-on{background:linear-gradient(135deg,#EF4444,#DC2626)!important;box-shadow:0 4px 20px rgba(239,68,68,.5)!important;animation:pulse 1.5s infinite;}
+/* 잠금 배너 */
+.lock-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:550;background:linear-gradient(90deg,#DC2626,#B91C1C);color:#fff;text-align:center;padding:12px 16px;font-size:14px;font-weight:800;box-shadow:0 -4px 20px rgba(239,68,68,.4);}
+.lock-banner.show{display:block;}
+/* 거부자 신고 모달 */
+.report-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9500;justify-content:center;align-items:center;padding:20px;}
+.report-modal.show{display:flex;}
+.report-box{background:linear-gradient(135deg,#1E293B,#0F172A);border:2px solid rgba(239,68,68,.5);border-radius:20px;padding:28px;text-align:center;max-width:320px;width:100%;animation:revealPop .4s ease;}
+.has-timer{padding-top:66px!important;}
 /* 막판뒤집기 배너 */
 .final-stage-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,#EF4444,#B91C1C,#EF4444);background-size:200%;animation:bannerScroll 3s linear infinite;padding:11px 16px;text-align:center;color:#fff;font-size:15px;font-weight:800;letter-spacing:1px;box-shadow:0 4px 20px rgba(239,68,68,.5);}
 @keyframes bannerScroll{0%{background-position:0%}100%{background-position:200%}}
@@ -193,6 +229,61 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
 </style>
 </head>
 <body>
+
+<!-- 스테이지 타이머 바 (상단 고정) -->
+<div class="stage-timer-bar" id="stage-timer-bar">
+  <span style="color:rgba(255,255,255,.6);font-size:12px;font-weight:700">⏱ 스테이지</span>
+  <div class="timer-progress-wrap"><div class="timer-progress" id="timer-progress" style="width:100%"></div></div>
+  <div class="timer-text" id="timer-text-display">10:00</div>
+  <span id="timer-lock-icon" style="display:none;color:#EF4444;font-size:13px;font-weight:800;animation:pulse 1s infinite">🔒 잠금</span>
+</div>
+
+<!-- 20초 잠금 배너 (하단) -->
+<div class="lock-banner" id="lock-banner">🔒 스테이지 종료 20초 전! 새 대결 불가!</div>
+
+<!-- 관리자 FAB 버튼 -->
+<button class="admin-fab" id="admin-fab" onclick="toggleAdminQuickPanel()">⚙️</button>
+
+<!-- 관리자 퀵패널 -->
+<div class="admin-quick-panel" id="admin-quick-panel">
+  <div class="aqp-title">🔐 관리자 퀵 컨트롤</div>
+  <button class="aqp-toggle off" id="aqp-final-toggle" onclick="quickToggleFinal()">🔥 막판뒤집기 OFF → 켜기</button>
+  <div style="border-top:1px solid rgba(255,255,255,.08);margin:10px 0"></div>
+  <div class="aqp-title">⏱ 스테이지 타이머</div>
+  <div class="aqp-timer-row">
+    <input class="aqp-num-input" id="aqp-timer-min" type="number" value="10" min="1" max="60">
+    <span style="color:rgba(255,255,255,.5);font-size:12px">분</span>
+    <button class="aqp-mini-btn" onclick="quickStartTimer()">▶ 시작</button>
+    <button class="aqp-mini-btn danger" onclick="quickStopTimer()">■ 중지</button>
+  </div>
+  <div style="border-top:1px solid rgba(255,255,255,.08);margin:10px 0"></div>
+  <button class="aqp-mini-btn" style="width:100%;margin-bottom:6px;padding:10px" onclick="showAdminFull()">📊 대시보드 열기</button>
+  <div style="border-top:1px solid rgba(255,255,255,.08);margin:10px 0"></div>
+  <div class="aqp-title">⚡ 수동 패널티</div>
+  <div class="aqp-timer-row">
+    <input id="aqp-penalty-name" type="text" placeholder="거부자 이름"
+      style="flex:1;padding:7px 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:12px;outline:none">
+    <button class="aqp-mini-btn danger" onclick="quickPenalty()" style="flex-shrink:0;padding:7px 10px">적용</button>
+  </div>
+</div>
+
+<!-- 거부자 신고 모달 (참가자가 직접) -->
+<div class="report-modal" id="report-modal">
+  <div class="report-box">
+    <div style="font-size:44px;margin-bottom:10px">😤</div>
+    <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px">막판뒤집기 거부!</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:18px;line-height:1.6">
+      거부한 사람의 이름을 입력하면<br>즉시 패널티가 전체 공개됩니다
+    </div>
+    <input id="report-refuser-name" type="text" placeholder="거부한 사람 이름 입력"
+      style="width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:2px solid rgba(239,68,68,.3);border-radius:12px;color:#fff;font-size:16px;outline:none;margin-bottom:10px;text-align:center">
+    <div id="report-result-msg" style="font-size:13px;color:#4ADE80;min-height:18px;margin-bottom:12px;font-weight:700"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="submitRefuserReport()" style="flex:1;padding:12px;background:linear-gradient(135deg,#EF4444,#DC2626);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer">🚨 패널티 신고</button>
+      <button onclick="closeReportModal()" style="flex:1;padding:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:rgba(255,255,255,.7);font-size:14px;font-weight:700;cursor:pointer">닫기</button>
+    </div>
+  </div>
+</div>
 
 <!-- 재시작 카운트다운 오버레이 (전 참가자 화면) -->
 <div id="restart-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:20px">
@@ -1091,16 +1182,6 @@ function startClock(){
   },1000);
 }
 
-socket.on('adminAuthResult',({success})=>{
-  if(success){
-    showScreen('screen-admin');
-    showNotif('✅ 관리자로 로그인 되었습니다.');
-    socket.emit('adminGetQuestions');
-    socket.emit('getRankings');
-    startClock();
-  } else showNotif('❌ 비밀번호가 틀렸습니다.');
-});
-
 function showAdminTab(tab){
   ['dashboard','individual','team','feed','questions','control'].forEach(t=>{
     const el=document.getElementById(`admin-tab-${t}`);
@@ -1570,37 +1651,218 @@ socket.on('serverReset',()=>{
   showScreen('screen-welcome');
 });
 
-// ── 막판뒤집기 ──
-let isFinalStage = false;
+// ── 스테이지 타이머 ──
+let stageActive=false, stageRemaining=0, stageDuration=600, stageLocked=false;
 
-function setFinalStageUI(active){
-  isFinalStage = active;
-  const banner = document.getElementById('final-stage-banner');
-  const indicator = document.getElementById('final-stage-indicator');
-  const lobbyNotice = document.getElementById('final-stage-lobby');
+socket.on('stageUpdate',({active,remaining,duration,lockNew})=>{
+  stageActive=active; stageRemaining=remaining; stageDuration=duration; stageLocked=lockNew;
+  updateTimerUI_stage(active,remaining,duration,lockNew);
+});
 
-  if(banner) banner.classList.toggle('show', active);
-  document.querySelectorAll('.screen.active').forEach(s=>{
-    s.classList.toggle('has-banner', active);
-  });
-  if(indicator){
-    indicator.textContent = active ? '🔥 ON' : 'OFF';
-    indicator.style.background = active ? 'rgba(239,68,68,.3)' : 'rgba(255,255,255,.1)';
-    indicator.style.color = active ? '#F87171' : 'rgba(255,255,255,.4)';
+socket.on('stageWarning',({remaining})=>{
+  showNotif(`⏰ 스테이지 종료 ${remaining}초 전! 새 대결 불가!`, 4000);
+  const bar=document.getElementById('stage-timer-bar');
+  if(bar)bar.classList.add('warning');
+  document.getElementById('lock-banner')?.classList.add('show');
+  document.getElementById('timer-lock-icon').style.display='inline';
+});
+
+socket.on('stageEnd',()=>{
+  stageActive=false; stageLocked=false;
+  document.getElementById('stage-timer-bar')?.classList.remove('show','warning');
+  document.getElementById('lock-banner')?.classList.remove('show');
+  document.getElementById('timer-lock-icon').style.display='none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('has-timer'));
+  showNotif('🏁 스테이지 시간 종료! 진행 중 대결은 무효 처리되었습니다.', 5000);
+});
+
+socket.on('battleVoid',({reason})=>{
+  currentBattle=null;
+  clearInterval(timerInterval);
+  showNotif(`⏰ ${reason} — 이 대결은 무효 처리되었습니다.`, 4000);
+  showScreen('screen-lobby');
+});
+
+function updateTimerUI_stage(active,remaining,duration,lockNew){
+  const bar=document.getElementById('stage-timer-bar');
+  const prog=document.getElementById('timer-progress');
+  const txt=document.getElementById('timer-text-display');
+  if(!bar)return;
+
+  if(!active){
+    bar.classList.remove('show','warning');
+    document.getElementById('lock-banner')?.classList.remove('show');
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('has-timer'));
+    return;
   }
-  if(lobbyNotice) lobbyNotice.style.display = active ? 'block' : 'none';
-  const btnOn = document.getElementById('btn-final-on');
-  const btnOff = document.getElementById('btn-final-off');
-  if(btnOn) btnOn.style.opacity = active ? '0.5' : '1';
-  if(btnOff) btnOff.style.opacity = active ? '1' : '0.5';
+  bar.classList.add('show');
+  document.querySelectorAll('.screen.active').forEach(s=>s.classList.add('has-timer'));
+
+  const pct=duration>0?(remaining/duration*100):0;
+  const mins=Math.floor(remaining/60);
+  const secs=remaining%60;
+  txt.textContent=`${mins}:${secs.toString().padStart(2,'0')}`;
+  prog.style.width=pct+'%';
+  prog.style.background=remaining>60?'#4ADE80':remaining>20?'#F59E0B':'#EF4444';
+
+  if(lockNew){
+    bar.classList.add('warning');
+    document.getElementById('lock-banner')?.classList.add('show');
+    document.getElementById('timer-lock-icon').style.display='inline';
+  }
 }
 
-socket.on('systemState',({finalStage})=>setFinalStageUI(finalStage));
-socket.on('finalStageChanged',({active})=>{
-  setFinalStageUI(active);
-  const currentScreen = document.querySelector('.screen.active');
-  if(currentScreen) currentScreen.classList.toggle('has-banner', active);
+// ── 관리자 FAB & 퀵패널 ──
+let isAdmin = false;
+let quickPanelOpen = false;
+let finalStageLocal = false;
+
+function showAdminFAB(show){
+  const fab=document.getElementById('admin-fab');
+  if(fab)fab.classList.toggle('show', show);
+}
+function toggleAdminQuickPanel(){
+  quickPanelOpen=!quickPanelOpen;
+  document.getElementById('admin-quick-panel')?.classList.toggle('show', quickPanelOpen);
+}
+function showAdminFull(){
+  quickPanelOpen=false;
+  document.getElementById('admin-quick-panel')?.classList.remove('show');
+  showScreen('screen-admin');
+  showAdminTab('dashboard');
+}
+function updateFABStyle(){
+  const fab=document.getElementById('admin-fab');
+  if(!fab)return;
+  fab.textContent = finalStageLocal ? '🔥' : '⚙️';
+  fab.classList.toggle('final-on', finalStageLocal);
+}
+function quickToggleFinal(){
+  const newVal = !finalStageLocal;
+  if(newVal && !confirm('막판뒤집기 모드를 켜시겠습니까?\n전 참가자에게 빨간 긴장 효과가 적용됩니다.'))return;
+  socket.emit('adminSetFinalStage', newVal);
+}
+function quickStartTimer(){
+  const min=parseInt(document.getElementById('aqp-timer-min')?.value)||10;
+  socket.emit('adminStartStage',{minutes:min});
+  quickPanelOpen=false;
+  document.getElementById('admin-quick-panel')?.classList.remove('show');
+  showNotif(`⏱ ${min}분 타이머 시작!`);
+}
+function quickStopTimer(){
+  if(!confirm('타이머를 중지하시겠습니까?'))return;
+  socket.emit('adminStopStage');
+}
+function quickPenalty(){
+  const name=document.getElementById('aqp-penalty-name')?.value.trim();
+  if(!name){showNotif('⚠️ 이름을 입력하세요');return;}
+  if(!confirm(`"${name}" 패널티 적용?`))return;
+  socket.emit('adminPenalizeRefuser', name);
+  document.getElementById('aqp-penalty-name').value='';
+}
+
+// ── finalStage 참가자 효과 ──
+function setFinalStageUI(active){
+  isFinalStage=active; finalStageLocal=active;
+  const banner=document.getElementById('final-stage-banner');
+  const lobbyNotice=document.getElementById('final-stage-lobby');
+  const indicator=document.getElementById('final-stage-indicator');
+  const toggle=document.getElementById('aqp-final-toggle');
+
+  if(banner)banner.classList.toggle('show',active);
+  document.body.classList.toggle('final-mode-active',active);
+  if(lobbyNotice)lobbyNotice.style.display=active?'block':'none';
+  if(indicator){
+    indicator.textContent=active?'🔥 ON':'OFF';
+    indicator.style.background=active?'rgba(239,68,68,.3)':'rgba(255,255,255,.1)';
+    indicator.style.color=active?'#F87171':'rgba(255,255,255,.4)';
+  }
+  if(toggle){
+    toggle.textContent=active?'🔥 막판뒤집기 ON → 끄기':'🔥 막판뒤집기 OFF → 켜기';
+    toggle.className='aqp-toggle '+(active?'on':'off');
+  }
+  updateFABStyle();
+  if(isAdmin){
+    const btnOn=document.getElementById('btn-final-on');
+    const btnOff=document.getElementById('btn-final-off');
+    if(btnOn)btnOn.style.opacity=active?'0.4':'1';
+    if(btnOff)btnOff.style.opacity=active?'1':'0.4';
+  }
+}
+
+// 도전 수신 시 finalStage 표시 강화
+socket.on('challenged',({challengerId,challengerName,challengerTeam,finalStage:fs})=>{
+  pendingChallengerId=challengerId;
+  document.getElementById('challenger-num').textContent=challengerId;
+  document.getElementById('challenger-name').textContent=challengerName;
+  document.getElementById('challenger-team').textContent=`${challengerTeam}팀`;
+  // finalStage 경고
+  const warn=document.querySelector('#challenge-overlay .final-warn');
+  if(fs && !warn){
+    const el=document.createElement('div');
+    el.className='final-warn';
+    el.style.cssText='background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:10px;padding:8px 14px;font-size:12px;color:#F87171;font-weight:700;margin-top:8px';
+    el.textContent='🔥 막판뒤집기! 거부하면 패널티!';
+    document.querySelector('.overlay-card')?.appendChild(el);
+  } else if(!fs && warn){
+    warn.remove();
+  }
+  document.getElementById('challenge-overlay').classList.add('show');
 });
+
+// 거부 후 신고 모달 표시
+socket.on('challengeRejected',({opponentName, finalStageAuto})=>{
+  showScreen('screen-lobby');
+  if(finalStageAuto || isFinalStage){
+    // 막판뒤집기 중 거부 → 신고 모달 열기
+    document.getElementById('report-refuser-name').value=opponentName||'';
+    document.getElementById('report-result-msg').textContent='';
+    document.getElementById('report-modal').classList.add('show');
+  } else {
+    showNotif(`😥 ${opponentName||'상대방'}이 거절했습니다.`);
+  }
+});
+
+function submitRefuserReport(){
+  const name=document.getElementById('report-refuser-name')?.value.trim();
+  if(!name){showNotif('⚠️ 이름을 입력하세요');return;}
+  socket.emit('reportRefuser',{refuserName:name});
+}
+socket.on('reportResult',({success,msg})=>{
+  const el=document.getElementById('report-result-msg');
+  if(el){el.textContent=msg;el.style.color=success?'#4ADE80':'#F87171';}
+  if(success){
+    showNotif('✅ 신고 완료! 패널티 적용됨', 3000);
+    setTimeout(closeReportModal, 2000);
+  }
+});
+function closeReportModal(){
+  document.getElementById('report-modal')?.classList.remove('show');
+}
+
+// adminAuth에 isAdmin 플래그 설정
+socket.on('adminAuthResult',({success})=>{
+  if(success){
+    isAdmin=true;
+    showAdminFAB(true);
+    showScreen('screen-admin');
+    showNotif('✅ 관리자로 로그인 되었습니다.');
+    socket.emit('adminGetQuestions');
+    socket.emit('getRankings');
+    socket.emit('getSystemState');
+    startClock();
+  } else showNotif('❌ 비밀번호가 틀렸습니다.');
+});
+
+socket.on('systemState',({finalStage,stageActive:sa,stageRemaining:sr,stageDuration:sd,lockNew:ln})=>{
+  setFinalStageUI(finalStage);
+  if(sa!==undefined) updateTimerUI_stage(sa,sr,sd,ln);
+});
+socket.on('finalStageChanged',({active})=>setFinalStageUI(active));
+
+</script>
+</body>
+</html>
 
 socket.on('systemAnnounce',(msg)=>{
   const wrap = document.getElementById('announce-wrap');
@@ -1619,22 +1881,10 @@ socket.on('finalStagePenalty',({msg, newWins})=>{
   updateLobby();
 });
 
-// 막판뒤집기 대결 수락 수신 (finalStageAuto)
-socket.on('challengeRejected',({opponentName, finalStageAuto})=>{
-  showScreen('screen-lobby');
-  if(finalStageAuto){
-    showNotif(`⚡ 막판뒤집기: ${opponentName||'상대방'}이 거부로 자동 패배 처리됨`, 4000);
-  } else {
-    showNotif(`😥 ${opponentName||'상대방'}이 거절했습니다.`);
-  }
-});
-
-function adminSetFinalStage(active){
-  socket.emit('adminSetFinalStage', active);
-}
+function adminSetFinalStage(active){socket.emit('adminSetFinalStage', active);}
 
 function adminApplyPenalty(){
-  const name = document.getElementById('penalty-name-input').value.trim();
+  const name = document.getElementById('penalty-name-input')?.value.trim();
   if(!name){showNotif('⚠️ 이름을 입력하세요');return;}
   if(!confirm(`"${name}" 에게 막판뒤집기 거부 패널티를 적용하시겠습니까?\n(보유 승수 ×3 차감)`))return;
   socket.emit('adminPenalizeRefuser', name);
