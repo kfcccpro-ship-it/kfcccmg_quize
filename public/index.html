@@ -194,6 +194,16 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
 </head>
 <body>
 
+<!-- 재시작 카운트다운 오버레이 (전 참가자 화면) -->
+<div id="restart-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:20px">
+  <div style="font-size:52px;margin-bottom:16px">🔄</div>
+  <div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:8px" id="restart-label-display">재시작 중...</div>
+  <div style="font-size:16px;color:rgba(255,255,255,.6);margin-bottom:28px">잠시 후 등록 화면으로 이동합니다</div>
+  <div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(79,70,229,.6);animation:pulse 1s infinite">
+    <span style="font-size:64px;font-weight:900;color:#fff" id="restart-count">3</span>
+  </div>
+</div>
+
 <!-- 막판뒤집기 전체 배너 -->
 <div class="final-stage-banner" id="final-stage-banner">
   🔥 막판뒤집기 스테이지 가동 중! — 모든 승리 ×3 배점 적용! 거부 = 즉시 패배 + 패널티! 🔥
@@ -651,9 +661,40 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
 
         <!-- 초기화 카드 -->
         <div class="dash-panel">
-          <div class="dash-panel-hdr"><span>⚙️ 게임 초기화</span></div>
+          <div class="dash-panel-hdr"><span>⚙️ 점수 초기화</span></div>
           <button class="btn btn-gold" onclick="adminResetScores()" style="margin-bottom:10px;font-size:15px">📊 점수만 초기화 (등록 유지)</button>
           <button class="btn btn-danger" onclick="adminResetAll()" style="font-size:15px">🗑 전체 초기화 (재등록 필요)</button>
+        </div>
+
+        <!-- 재시작 카드 -->
+        <div class="dash-panel" style="border:2px solid rgba(99,102,241,.4)">
+          <div class="dash-panel-hdr" style="margin-bottom:14px">
+            <span style="color:#A5B4FC;font-size:15px">🔄 재시작 (예행연습 / 본게임 전환)</span>
+          </div>
+          <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="color:#A5B4FC;font-size:13px;font-weight:700;margin-bottom:6px">📌 재시작이란?</div>
+            <div style="color:rgba(255,255,255,.6);font-size:12px;line-height:1.9">
+              • 모든 참가자 데이터 · 점수 · 대결 기록 완전 초기화<br>
+              • 모든 참가자 화면이 <strong style="color:#A5B4FC">등록 화면으로 자동 이동</strong><br>
+              • 3초 카운트다운 후 실행 (참가자가 준비할 시간)<br>
+              • 예행연습 후 → 본게임 시작 전에 사용하세요
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">재시작 구분 라벨 (선택사항)</div>
+            <input id="restart-label-input" type="text" placeholder="예: 본게임 시작, 2교시 시작..."
+              style="width:100%;padding:10px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;outline:none;margin-bottom:0">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="adminRestart('예행연습')"
+              style="padding:14px;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);border-radius:12px;color:#A5B4FC;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s">
+              🎮 예행연습 재시작
+            </button>
+            <button onclick="adminRestart()"
+              style="padding:14px;background:linear-gradient(135deg,#4F46E5,#4338CA);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s">
+              🚀 본게임 재시작
+            </button>
+          </div>
         </div>
 
         <!-- 시스템 정보 -->
@@ -1482,6 +1523,41 @@ function handleExcelUpload(event){
 
 function adminResetScores(){if(!confirm('점수를 초기화하시겠습니까?\n(참가자 등록은 유지됩니다)'))return;socket.emit('resetScores');}
 function adminResetAll(){if(!confirm('전체 초기화하시겠습니까?\n모든 데이터가 삭제됩니다.'))return;socket.emit('resetAll');}
+
+// ── 재시작 ──
+function adminRestart(defaultLabel){
+  const inputVal = document.getElementById('restart-label-input')?.value.trim();
+  const label = inputVal || defaultLabel || '재시작';
+  const msg = `"${label}" 재시작을 진행하시겠습니까?\n\n3초 카운트다운 후 모든 데이터가 초기화되고\n참가자 전원이 등록 화면으로 이동합니다.`;
+  if(!confirm(msg))return;
+  socket.emit('adminRestart',{label});
+}
+
+// 카운트다운 수신 (전 참가자)
+socket.on('restartCountdown',({label, sec})=>{
+  const overlay = document.getElementById('restart-overlay');
+  const countEl = document.getElementById('restart-count');
+  const labelEl = document.getElementById('restart-label-display');
+  if(overlay){
+    overlay.style.display='flex';
+    if(labelEl)labelEl.textContent = `🔄 ${label}`;
+    if(countEl)countEl.textContent = sec;
+  }
+});
+
+// 재시작 완료 수신
+socket.on('serverRestart',({label})=>{
+  // 오버레이 숨기기
+  const overlay = document.getElementById('restart-overlay');
+  if(overlay)overlay.style.display='none';
+  // 상태 초기화
+  myId=null;myName='';myTeam=0;currentBattle=null;
+  allPlayers=[];battleFeed=[];battlesDoneCount=0;
+  isFinalStage=false;
+  setFinalStageUI(false);
+  showNotif(`✅ ${label} 완료! 다시 등록해주세요.`, 4000);
+  showScreen('screen-welcome');
+});
 socket.on('scoresReset',()=>{
   showNotif('✅ 점수가 초기화되었습니다.');
   updateLobby();
