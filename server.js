@@ -561,6 +561,16 @@ io.on('connection',(socket)=>{
   socket.on('getRankings',()=>socket.emit('playersUpdate',publicPlayers()));
   socket.on('getSystemState',()=>emitSystemState(socket));
 
+  // 이름으로 번호 찾기
+  socket.on('findByName',(name)=>{
+    const found = Object.values(state.players).filter(p=>
+      p.name.includes(name.trim()) || name.trim().includes(p.name)
+    );
+    socket.emit('findByNameResult', found.map(p=>({
+      id:p.id, name:p.name, team:p.team, online:p.online
+    })));
+  });
+
   // 막판뒤집기 모드 ON/OFF
   socket.on('adminSetFinalStage',(active)=>{
     if(!socket.isAdmin)return;

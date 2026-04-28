@@ -339,8 +339,17 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
   </div>
   <div class="card">
     <h2>🔄 재접속 (이미 등록한 경우)</h2>
-    <input id="reconnect-id" type="number" placeholder="내 번호 입력">
-    <button class="btn btn-outline" onclick="doReconnect()">재접속하기</button>
+    <p class="text-gray" style="margin-bottom:10px;font-size:13px">번호를 알면 → 번호 입력 / 번호를 잊었으면 → 이름으로 찾기</p>
+    <input id="reconnect-id" type="number" placeholder="① 내 번호 입력 (기억하는 경우)">
+    <button class="btn btn-outline" onclick="doReconnect()" style="margin-bottom:12px">번호로 재접속</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="flex:1;height:1px;background:#E5E7EB"></div>
+      <span style="color:var(--gray);font-size:13px">또는</span>
+      <div style="flex:1;height:1px;background:#E5E7EB"></div>
+    </div>
+    <input id="find-name" type="text" placeholder="② 이름으로 번호 찾기 (예: 홍길동)">
+    <button class="btn btn-gray" onclick="doFindByName()">🔍 이름으로 찾기</button>
+    <div id="find-result" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden"></div>
   </div>
   <div class="card">
     <h2>🔐 관리자 입장</h2>
@@ -616,7 +625,10 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
       <div class="dash-panel">
         <div class="dash-panel-hdr">
           <span>🏆 전체 개인 순위</span>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="admin-name-search" type="text" placeholder="🔍 이름 검색"
+              oninput="renderAdminIndividual()"
+              style="padding:6px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:13px;outline:none;width:130px">
             <button class="admin-sort-btn active" id="asort-winrate" onclick="setAdminSort('winrate')">승률순</button>
             <button class="admin-sort-btn" id="asort-correct" onclick="setAdminSort('correct')">정답순</button>
             <button class="admin-sort-btn" id="asort-battles" onclick="setAdminSort('battles')">대결순</button>
@@ -911,6 +923,38 @@ function doReconnect(){
   const id=parseInt(document.getElementById('reconnect-id').value);
   if(!id)return showNotif('⚠️ 번호를 입력해주세요');
   socket.emit('reconnectPlayer',id);
+}
+
+function doFindByName(){
+  const name=document.getElementById('find-name').value.trim();
+  if(!name)return showNotif('⚠️ 이름을 입력해주세요');
+  socket.emit('findByName', name);
+}
+
+socket.on('findByNameResult',(results)=>{
+  const box=document.getElementById('find-result');
+  if(!box)return;
+  box.style.display='block';
+  if(!results.length){
+    box.innerHTML=`<div style="background:var(--red-light);color:var(--red);padding:14px;text-align:center;font-size:14px;font-weight:700;border-radius:12px">❌ "${document.getElementById('find-name').value}" 이름을 찾을 수 없습니다</div>`;
+    return;
+  }
+  box.innerHTML=results.map(p=>`
+    <div style="background:var(--blue-light);border:2px solid var(--blue);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:13px;color:var(--gray)">이름: <strong style="color:var(--text)">${p.name}</strong> · ${p.team}팀</div>
+        <div style="font-size:28px;font-weight:900;color:var(--blue);line-height:1.2">내 번호: ${p.id}</div>
+        <div style="font-size:12px;color:${p.online?'var(--green)':'var(--gray)'}">● ${p.online?'현재 접속 중':'오프라인'}</div>
+      </div>
+      <button onclick="quickReconnect(${p.id})"
+        style="padding:10px 16px;background:var(--blue);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer">
+        이 번호로<br>재접속
+      </button>
+    </div>`).join('');
+});
+
+function quickReconnect(id){
+  socket.emit('reconnectPlayer', id);
 }
 function doAdminLogin(){socket.emit('adminAuth',document.getElementById('admin-pw').value);}
 
@@ -1293,19 +1337,26 @@ function setAdminSort(s){
 function renderAdminIndividual(){
   const el=document.getElementById('admin-individual-list');
   if(!el)return;
-  const ps=[...allPlayers];
+  const searchVal=(document.getElementById('admin-name-search')?.value||'').trim();
+  let ps=[...allPlayers];
+  if(searchVal) ps=ps.filter(p=>p.name.includes(searchVal));
   if(adminSort==='winrate')ps.sort((a,b)=>winRate(b)-winRate(a)||b.correct-a.correct);
   else if(adminSort==='correct')ps.sort((a,b)=>b.correct-a.correct||winRate(b)-winRate(a));
   else ps.sort((a,b)=>b.battleCount-a.battleCount||b.correct-a.correct);
-  if(!ps.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">참가자가 없습니다</div>';return;}
+  if(!ps.length){
+    el.innerHTML=`<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">${searchVal?`"${searchVal}" 이름을 찾을 수 없습니다`:'참가자가 없습니다'}</div>`;
+    return;
+  }
   const maxWR=Math.max(...ps.map(p=>winRate(p)),1);
   el.innerHTML=ps.map((p,i)=>`
-    <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
-      <div class="rank-num" style="font-size:${i<3?'18':'14'}px">${medal(i+1)}</div>
+    <div class="rank-row ${i===0&&!searchVal?'top1':i===1&&!searchVal?'top2':i===2&&!searchVal?'top3':''}">
+      <div class="rank-num" style="font-size:${i<3&&!searchVal?'18':'14'}px">${searchVal?'🔍':medal(i+1)}</div>
       <div style="width:32px;height:32px;border-radius:50%;background:${p.online?'rgba(74,222,128,.15)':'rgba(255,255,255,.06)'};border:2px solid ${p.online?'#4ADE80':'rgba(255,255,255,.1)'};display:flex;align-items:center;justify-content:center;margin-left:8px;flex-shrink:0">
         <span style="font-size:11px;font-weight:800;color:${p.online?'#4ADE80':'rgba(255,255,255,.3)'}">${p.id}</span>
       </div>
-      <div class="rank-name" style="margin-left:8px">${p.name}<span class="rank-team-tag">${p.team}팀</span>${p.inBattle?'<span style="background:#F59E0B;color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px">대결중</span>':''}</div>
+      <div class="rank-name" style="margin-left:8px">${p.name}<span class="rank-team-tag">${p.team}팀</span>${p.inBattle?'<span style="background:#F59E0B;color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px">대결중</span>':''}
+        ${searchVal?`<span style="background:rgba(59,130,246,.2);color:#60A5FA;font-size:11px;padding:2px 8px;border-radius:6px;margin-left:6px;font-weight:800"># ${p.id}번</span>`:''}
+      </div>
       <div class="rank-stats">
         <div class="rank-stat"><span class="val" style="color:#60A5FA">${winRate(p).toFixed(0)}%</span><span class="lbl">승률</span></div>
         <div class="rank-stat"><span class="val">${p.wins}W</span><span class="lbl">승</span></div>
