@@ -201,6 +201,14 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
 .upload-area-dark:hover{border-color:#3B82F6;background:rgba(59,130,246,.08);}
 .admin-msg-dark{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ADE80;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px;}
 .sector-tab-btn{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all .2s;margin-bottom:6px;}
+.block-toggle{padding:12px 10px;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer;text-align:center;transition:all .15s;font-size:13px;}
+.block-toggle:hover{border-color:rgba(59,130,246,.5);}
+.block-toggle.on{background:linear-gradient(135deg,#2563EB,#1D4ED8);border-color:#3B82F6;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.4);}
+.block-toggle .bt-no{font-size:18px;font-weight:900;line-height:1.1;}
+.block-toggle .bt-label{font-size:11px;opacity:.85;margin-top:2px;}
+.btn-block-quick{padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:rgba(255,255,255,.75);font-size:13px;font-weight:600;cursor:pointer;}
+.btn-block-quick:hover{background:rgba(255,255,255,.14);}
+.btn-block-apply{padding:8px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-size:13px;font-weight:800;cursor:pointer;margin-left:auto;}
 .sector-tab-btn.active{background:#3B82F6;border-color:#3B82F6;color:#fff;}
 .battler-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.8);font-size:13px;}
 .battler-dot{width:8px;height:8px;border-radius:50%;background:#F59E0B;animation:pulse 1s infinite;margin-right:8px;flex-shrink:0;}
@@ -375,9 +383,9 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
   <div class="card">
     <div style="font-size:20px;margin-bottom:8px;text-align:center">📌 이렇게 사용해요</div>
     <div style="font-size:14px;color:var(--gray);line-height:1.9">
-      ① 직접 만난 상대방에게 <strong>내 번호</strong>를 알려주세요<br>
-      ② 상대방 번호를 물어보세요<br>
-      ③ 대결 신청 버튼 → 상대방 번호 입력 → 도전!<br>
+      ① 직접 만난 상대방과 <strong>이름</strong>을 확인하세요<br>
+      ② 대결 신청 버튼 → 상대방 <strong>이름</strong> 입력 → 도전!<br>
+      ③ 같은 이름이 여럿이면 목록에서 선택해요<br>
       ④ 문제 유형은 시작 순간 <strong>랜덤</strong>으로 결정돼요
     </div>
   </div>
@@ -392,7 +400,7 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
     <div class="name" id="my-name">-</div>
     <div class="team" id="my-team">-팀</div>
   </div>
-  <div class="random-notice">🎲 문제 유형은 대결 시작 순간 <strong>랜덤</strong> 결정!<br><span style="opacity:.85;font-size:12px">OX · 3지선다 · 4지선다 중 하나</span></div>
+  <div class="random-notice">📖 이번 라운드 출제 범위<br><span id="lobby-range-label" style="opacity:.95;font-size:14px;font-weight:800">전체 범위</span><br><span style="opacity:.8;font-size:11px">OX 퀴즈 · 5문제 3선승</span></div>
   <div id="final-stage-lobby" style="display:none;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;border-radius:12px;padding:14px 16px;text-align:center;font-size:14px;font-weight:800;margin-bottom:12px;animation:pulse 1.5s infinite">
     🔥 막판뒤집기 스테이지 가동 중! 승리 ×3점!<br>
     <span style="font-size:12px;font-weight:600;opacity:.9">거부 = 즉시 패배 + 보유 승수×3 차감!</span>
@@ -410,11 +418,12 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
 <div id="screen-challenge" class="screen">
   <div class="header"><h1>⚔️ 대결 신청</h1></div>
   <div class="card">
-    <h2>상대방 번호 입력</h2>
-    <p class="text-gray" style="margin-bottom:12px">📲 직접 만나서 상대방의 <strong>번호</strong>를 확인하세요!</p>
-    <input id="opponent-id" type="number" placeholder="상대방 번호" min="1">
+    <h2>상대방 이름 입력</h2>
+    <p class="text-gray" style="margin-bottom:12px">📲 직접 만나서 상대방의 <strong>이름</strong>을 확인하세요!</p>
+    <input id="opponent-name" type="text" placeholder="상대방 이름 (예: 홍길동)">
     <button class="btn btn-primary" onclick="doChallenge()">⚔️ 도전!</button>
     <button class="btn btn-gray" onclick="showScreen('screen-lobby')">← 돌아가기</button>
+    <div id="name-candidates" style="display:none;margin-top:12px"></div>
   </div>
 </div>
 
@@ -558,7 +567,7 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
     <button class="admin-nav-tab" id="anav-individual" onclick="showAdminTab('individual')">🏆 개인 순위</button>
     <button class="admin-nav-tab" id="anav-team" onclick="showAdminTab('team')">🏅 팀 순위</button>
     <button class="admin-nav-tab" id="anav-feed" onclick="showAdminTab('feed')">⚔️ 대결 피드</button>
-    <button class="admin-nav-tab" id="anav-questions" onclick="showAdminTab('questions')">📋 문제 관리</button>
+    <button class="admin-nav-tab" id="anav-questions" onclick="showAdminTab('questions')">🎯 출제 범위</button>
     <button class="admin-nav-tab" id="anav-control" onclick="showAdminTab('control')">⚙️ 제어</button>
   </div>
 
@@ -589,15 +598,43 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
         </div>
       </div>
 
+      <!-- 🏆 MVP 칭찬 카드 2개 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <!-- 가장 잘한 사람 (승수왕) -->
+        <div style="background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:16px;padding:20px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-10px;right:-10px;font-size:80px;opacity:.15">🏆</div>
+          <div style="color:rgba(255,255,255,.85);font-size:13px;font-weight:700;letter-spacing:1px;margin-bottom:8px">🏆 가장 잘한 사람 (최다 승)</div>
+          <div id="mvp-winner" style="color:#fff">
+            <div style="font-size:14px;opacity:.7">아직 데이터 없음</div>
+          </div>
+        </div>
+        <!-- 가장 많이 매칭한 사람 (열정왕) -->
+        <div style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);border-radius:16px;padding:20px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-10px;right:-10px;font-size:80px;opacity:.15">🔥</div>
+          <div style="color:rgba(255,255,255,.85);font-size:13px;font-weight:700;letter-spacing:1px;margin-bottom:8px">🔥 가장 열정적인 사람 (최다 대결)</div>
+          <div id="mvp-active" style="color:#fff">
+            <div style="font-size:14px;opacity:.7">아직 데이터 없음</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 대시보드 2단 레이아웃 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <!-- 개인 TOP5 -->
+        <!-- 개인 TOP5 (승수 기준) -->
         <div class="dash-panel">
           <div class="dash-panel-hdr">
-            <span>🏆 개인 TOP 5 (승률 기준)</span>
+            <span>🏆 개인 순위 TOP 5 (승수 기준)</span>
             <span class="live-badge">LIVE</span>
           </div>
           <div id="dash-top5-individual"></div>
+        </div>
+        <!-- 매칭 많이 한 순 TOP5 -->
+        <div class="dash-panel">
+          <div class="dash-panel-hdr">
+            <span>🔥 최다 대결 TOP 5 (승패 무관)</span>
+            <span class="live-badge">LIVE</span>
+          </div>
+          <div id="dash-top5-active"></div>
         </div>
         <!-- 팀 TOP5 -->
         <div class="dash-panel">
@@ -608,13 +645,13 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
           <div id="dash-top5-team"></div>
         </div>
         <!-- 최근 대결 -->
-        <div class="dash-panel" style="grid-column:1/-1">
+        <div class="dash-panel">
           <div class="dash-panel-hdr">
             <span>⚔️ 최근 대결 결과</span>
             <span class="live-badge">LIVE</span>
           </div>
-          <div id="dash-recent-battles" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;min-height:80px">
-            <div style="color:rgba(255,255,255,.4);font-size:13px;padding:20px;text-align:center;grid-column:1/-1">아직 완료된 대결이 없습니다</div>
+          <div id="dash-recent-battles" style="display:grid;grid-template-columns:1fr;gap:10px;min-height:80px;max-height:300px;overflow-y:auto">
+            <div style="color:rgba(255,255,255,.4);font-size:13px;padding:20px;text-align:center">아직 완료된 대결이 없습니다</div>
           </div>
         </div>
       </div>
@@ -684,38 +721,39 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
     <!-- ⑤ 문제 관리 -->
     <div id="admin-tab-questions" style="display:none">
       <div class="admin-msg-dark" id="admin-msg-box" style="display:none"></div>
-      <div style="display:grid;grid-template-columns:320px 1fr;gap:16px">
-        <!-- 좌: 업로드 + 섹터 선택 -->
-        <div>
-          <div class="dash-panel" style="margin-bottom:16px">
-            <div class="dash-panel-hdr"><span>📤 엑셀 업로드</span></div>
-            <div class="upload-area-dark" onclick="document.getElementById('excel-upload').click()">
-              <input type="file" id="excel-upload" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
-              <div style="font-size:32px;margin-bottom:6px">📊</div>
-              <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:14px">엑셀 파일 선택</div>
-              <div style="font-size:12px;color:rgba(255,255,255,.5)">서식 파일 수정 후 업로드</div>
-            </div>
-            <div id="upload-status" style="display:none;margin-top:10px;font-size:13px;color:#4ADE80;font-weight:600;text-align:center;padding:8px;background:rgba(74,222,128,.1);border-radius:8px"></div>
-          </div>
-          <div class="dash-panel">
-            <div class="dash-panel-hdr"><span>📚 섹터 선택</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-              <button class="sector-tab-btn active" id="qtab-1" onclick="showQTab(1)">⭕ OX 퀴즈 <span id="qtab-1-count" style="opacity:.7"></span></button>
-              <button class="sector-tab-btn" id="qtab-2" onclick="showQTab(2)">3️⃣ 3지 선다 <span id="qtab-2-count" style="opacity:.7"></span></button>
-              <button class="sector-tab-btn" id="qtab-3" onclick="showQTab(3)">4️⃣ 4지 선다 <span id="qtab-3-count" style="opacity:.7"></span></button>
-            </div>
-            <button class="btn btn-primary" style="margin-top:12px;font-size:13px;padding:10px" onclick="openAddModal()">➕ 문제 추가</button>
-          </div>
+
+      <!-- 출제 범위(블록) 지정 -->
+      <div class="dash-panel" style="border:2px solid rgba(59,130,246,.4);margin-bottom:16px">
+        <div class="dash-panel-hdr" style="margin-bottom:14px">
+          <span style="color:#93C5FD;font-size:16px">🎯 출제 범위 지정 (쉬는 시간마다 변경)</span>
+          <span id="active-pool-count" style="color:rgba(255,255,255,.6);font-size:13px">전체 65문제</span>
         </div>
-        <!-- 우: 문제 목록 -->
-        <div class="dash-panel">
-          <div class="dash-panel-hdr">
-            <span id="q-list-title">문제 목록</span>
-            <span id="q-count" style="color:rgba(255,255,255,.6);font-size:13px"></span>
-          </div>
-          <div id="q-list-wrap" style="max-height:calc(100vh - 240px);overflow-y:auto">
-            <div style="color:rgba(255,255,255,.4);padding:20px;text-align:center">로딩 중...</div>
-          </div>
+        <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+          <div style="color:#93C5FD;font-size:13px;font-weight:700;margin-bottom:4px">현재 출제 범위</div>
+          <div id="active-blocks-label" style="color:#fff;font-size:14px;line-height:1.6">전체 블록 (1~13번)</div>
+        </div>
+        <div style="color:rgba(255,255,255,.6);font-size:12px;margin-bottom:10px">아래 블록을 눌러 켜고 끄세요. 켜진 블록에서만 랜덤 5문제가 출제됩니다.</div>
+        <div id="block-toggle-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn-block-quick" onclick="quickSelectBlocks('all')">전체 선택</button>
+          <button class="btn-block-quick" onclick="quickSelectBlocks('none')">전체 해제</button>
+          <button class="btn-block-quick" onclick="quickSelectBlocks('1-3')">1~3번</button>
+          <button class="btn-block-quick" onclick="quickSelectBlocks('4-6')">4~6번</button>
+          <button class="btn-block-quick" onclick="quickSelectBlocks('7-9')">7~9번</button>
+          <button class="btn-block-quick" onclick="quickSelectBlocks('10-13')">10~13번</button>
+          <button class="btn-block-apply" onclick="applyActiveBlocks()">✅ 이 범위로 출제 적용</button>
+        </div>
+      </div>
+
+      <!-- 블록별 문제 미리보기 -->
+      <div class="dash-panel">
+        <div class="dash-panel-hdr">
+          <span>📋 블록별 문제 미리보기</span>
+          <span id="q-count" style="color:rgba(255,255,255,.6);font-size:13px"></span>
+        </div>
+        <select id="preview-block-select" onchange="renderBlockPreview()" style="padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:14px;outline:none;width:100%;margin-bottom:12px"></select>
+        <div id="q-list-wrap" style="max-height:calc(100vh - 380px);overflow-y:auto">
+          <div style="color:rgba(255,255,255,.4);padding:20px;text-align:center">로딩 중...</div>
         </div>
       </div>
     </div>
@@ -831,34 +869,6 @@ select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;
   </div>
 </div>
 
-<!-- 문제 추가/수정 모달 -->
-<div class="modal" id="q-modal">
-  <div class="modal-box">
-    <h3 id="modal-title">문제 추가</h3>
-    <input type="hidden" id="modal-mode"><!-- add/edit -->
-    <input type="hidden" id="modal-sector">
-    <input type="hidden" id="modal-index">
-    <div class="label">섹터 선택</div>
-    <select id="modal-sector-select" onchange="updateModalOpts()">
-      <option value="1">섹터1 - OX 퀴즈</option>
-      <option value="2">섹터2 - 3지 선다</option>
-      <option value="3">섹터3 - 4지 선다</option>
-    </select>
-    <div class="label">문제</div>
-    <textarea id="modal-q" placeholder="문제를 입력하세요" rows="3"></textarea>
-    <div id="modal-opts-wrap">
-      <!-- 동적 생성 -->
-    </div>
-    <div class="label">정답 (보기와 정확히 동일하게)</div>
-    <input id="modal-ans" type="text" placeholder="정답 입력">
-    <div class="label">해설</div>
-    <textarea id="modal-exp" placeholder="해설을 입력하세요" rows="2"></textarea>
-    <div class="flex-row mt12">
-      <button class="btn btn-primary btn-sm" style="flex:1" onclick="submitModal()">저장</button>
-      <button class="btn btn-gray btn-sm" style="flex:1" onclick="closeModal()">취소</button>
-    </div>
-  </div>
-</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -866,8 +876,44 @@ const socket = io();
 
 let myId=null,myName='',myTeam=0;
 let currentBattle=null,timerInterval=null,timerSecs=6,currentAnswer=null;
-let pendingChallengerId=null,allPlayers=[],adminQuizDB={};
-let currentQTab=1,currentISort='winrate',currentTSort='winrate';
+let pendingChallengerId=null,allPlayers=[],adminBlocks={};
+let currentActiveBlocks=[],appliedActiveBlocks=[];
+let currentISort='winrate',currentTSort='winrate';
+let waitingTimeout=null;
+let manualReconnect=false;
+let adminManualLogin=false;
+
+// ── 세션 영속성: 새로고침/재접속 자동 복구 ──
+function saveSession(){
+  try{ if(myId) localStorage.setItem('kmg_myId', String(myId)); }catch(e){}
+}
+function clearSession(){
+  try{ localStorage.removeItem('kmg_myId'); }catch(e){}
+}
+function getSavedId(){
+  try{ const v=localStorage.getItem('kmg_myId'); return v?parseInt(v):null; }catch(e){ return null; }
+}
+
+// 소켓이 (재)연결될 때마다 자동으로 본인 세션 복구
+socket.on('connect',()=>{
+  const savedId = myId || getSavedId();
+  if(savedId){
+    socket.emit('reconnectPlayer', savedId);
+  }
+  // 관리자 세션 자동 복구
+  try{
+    const adminPw = localStorage.getItem('kmg_adminPw');
+    if(adminPw && isAdmin){ socket.emit('adminAuth', adminPw); }
+  }catch(e){}
+});
+socket.io.on('reconnect',()=>{
+  const savedId = myId || getSavedId();
+  if(savedId) socket.emit('reconnectPlayer', savedId);
+  try{
+    const adminPw = localStorage.getItem('kmg_adminPw');
+    if(adminPw && isAdmin){ socket.emit('adminAuth', adminPw); }
+  }catch(e){}
+});
 
 const SECTOR_INFO={
   1:{name:'OX 퀴즈',icon:'⭕',cls:'s1',short:'1섹터 OX'},
@@ -922,6 +968,7 @@ function doRegister(){
 function doReconnect(){
   const id=parseInt(document.getElementById('reconnect-id').value);
   if(!id)return showNotif('⚠️ 번호를 입력해주세요');
+  manualReconnect=true;
   socket.emit('reconnectPlayer',id);
 }
 
@@ -954,12 +1001,19 @@ socket.on('findByNameResult',(results)=>{
 });
 
 function quickReconnect(id){
+  manualReconnect=true;
   socket.emit('reconnectPlayer', id);
 }
-function doAdminLogin(){socket.emit('adminAuth',document.getElementById('admin-pw').value);}
+function doAdminLogin(){
+  const pw=document.getElementById('admin-pw').value;
+  try{ localStorage.setItem('kmg_adminPw', pw); }catch(e){}
+  adminManualLogin=true;
+  socket.emit('adminAuth',pw);
+}
 
 socket.on('registered',({id,player})=>{
   myId=id;myName=player.name;myTeam=player.team;
+  saveSession();
   document.getElementById('reg-done-name').textContent=player.name;
   document.getElementById('reg-done-team').textContent=`${player.team}팀`;
   document.getElementById('reg-done-num').textContent=id;
@@ -967,10 +1021,25 @@ socket.on('registered',({id,player})=>{
 });
 socket.on('reconnected',({player})=>{
   myId=player.id;myName=player.name;myTeam=player.team;
-  updateLobby();showScreen('screen-lobby');
-  showNotif(`🔄 재접속 완료! ${player.name}님 (${player.id}번)`);
+  saveSession();
+  updateLobby();
+  const onWelcome = document.getElementById('screen-welcome').classList.contains('active');
+  if(onWelcome || manualReconnect){
+    showScreen('screen-lobby');
+    showNotif(`🔄 재접속 완료! ${player.name}님 (${player.id}번)`);
+  }
+  manualReconnect=false;
 });
-socket.on('reconnectFailed',()=>showNotif('❌ 해당 번호를 찾을 수 없습니다.'));
+socket.on('reconnectFailed',()=>{
+  if(manualReconnect){
+    showNotif('❌ 해당 번호를 찾을 수 없습니다.');
+    manualReconnect=false;
+  } else {
+    // 자동 복구 실패(서버 재시작 등) → 세션 삭제
+    clearSession();
+    myId=null;myName='';myTeam=0;
+  }
+});
 
 function updateLobby(){
   if(!myId)return;
@@ -985,34 +1054,62 @@ function updateLobby(){
   }
 }
 
-// ── 도전 ──
+// ── 도전 (이름 기반) ──
 function doChallenge(){
-  const oppId=parseInt(document.getElementById('opponent-id').value);
-  if(!oppId)return showNotif('⚠️ 상대방 번호를 입력해주세요');
-  socket.emit('challenge',oppId);
+  const name=document.getElementById('opponent-name').value.trim();
+  if(!name)return showNotif('⚠️ 상대방 이름을 입력해주세요');
+  document.getElementById('name-candidates').style.display='none';
+  socket.emit('challengeByName',name);
 }
+function challengeById(id){
+  document.getElementById('name-candidates').style.display='none';
+  socket.emit('challenge',id);
+}
+// 동명이인 후보 목록 표시
+socket.on('challengeNameCandidates',(list)=>{
+  const box=document.getElementById('name-candidates');
+  box.style.display='block';
+  box.innerHTML='<p style="font-size:13px;color:var(--gray);margin-bottom:8px;font-weight:600">같은 이름이 여러 명이에요. 누구에게 도전할까요?</p>'+
+    list.map(p=>`
+      <div onclick="challengeById(${p.id})" style="cursor:pointer;background:var(--blue-light);border:2px solid var(--blue);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700;font-size:15px">${p.name} <span style="font-size:12px;color:var(--gray)">${p.team}팀</span></div>
+          <div style="font-size:12px;color:${p.online?'var(--green)':'var(--gray)'}">${p.online?'🟢 접속중':'⚫ 오프라인'} · ${p.wins}승 · ${p.battled}대결${p.inBattle?' · ⚔️대결중':''}</div>
+        </div>
+        <span style="background:var(--blue);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700">도전</span>
+      </div>`).join('');
+});
 function cancelChallenge(){socket.emit('cancelChallenge');showScreen('screen-lobby');}
 
 socket.on('challengeSent',({opponentId,opponentName})=>{
   document.getElementById('waiting-text').textContent=`${opponentName}(${opponentId}번)님의 수락을 기다리는 중...`;
   showScreen('screen-waiting');
+  // 30초 무응답 시 자동 취소 (무한 대기 방지)
+  if(waitingTimeout)clearTimeout(waitingTimeout);
+  waitingTimeout=setTimeout(()=>{
+    socket.emit('cancelChallenge');
+    showScreen('screen-lobby');
+    showNotif('⏰ 응답이 없어 도전을 취소했습니다. 다시 시도해주세요.', 4000);
+  }, 30000);
 });
-socket.on('challengeError',(msg)=>showNotif('❌ '+msg));
-socket.on('challengeCancelled',()=>{hideOverlay();showNotif('상대방이 도전을 취소했습니다.');});
+socket.on('challengeError',(msg)=>{
+  if(waitingTimeout){clearTimeout(waitingTimeout);waitingTimeout=null;}
+  showNotif('❌ '+msg);
+});
+socket.on('challengeCancelled',()=>{
+  if(waitingTimeout){clearTimeout(waitingTimeout);waitingTimeout=null;}
+  hideOverlay();
+  showNotif('상대방이 도전을 취소했습니다.');
+});
 
-socket.on('challenged',({challengerId,challengerName,challengerTeam})=>{
-  pendingChallengerId=challengerId;
-  document.getElementById('challenger-num').textContent=challengerId;
-  document.getElementById('challenger-name').textContent=challengerName;
-  document.getElementById('challenger-team').textContent=`${challengerTeam}팀`;
-  document.getElementById('challenge-overlay').classList.add('show');
-});
 function acceptChallenge(){if(!pendingChallengerId)return;socket.emit('acceptChallenge',pendingChallengerId);hideOverlay();}
 function rejectChallenge(){if(!pendingChallengerId)return;socket.emit('rejectChallenge',pendingChallengerId);pendingChallengerId=null;hideOverlay();}
 function hideOverlay(){document.getElementById('challenge-overlay').classList.remove('show');pendingChallengerId=null;}
 
 // ── 배틀 ──
 socket.on('battleQuestion',({battleId,qIdx,question,options,sector,sectorName,scores,totalQ})=>{
+  if(waitingTimeout){clearTimeout(waitingTimeout);waitingTimeout=null;}
+  hideOverlay();
   currentBattle={battleId,qIdx,options,scores,totalQ,sector};
   currentAnswer=null;
   if(qIdx===0){
@@ -1150,7 +1247,7 @@ socket.on('playersUpdate',(players)=>{
   renderDashRecentBattles();
   // 제어탭 총 문제수
   const ctrl=document.getElementById('ctrl-total-q');
-  if(ctrl&&adminQuizDB[1])ctrl.textContent=`📚 총 문제: OX ${adminQuizDB[1]?.length||0}개 / 3지 ${adminQuizDB[2]?.length||0}개 / 4지 ${adminQuizDB[3]?.length||0}개`;
+  if(ctrl&&Object.keys(adminBlocks).length){const t=Object.values(adminBlocks).reduce((s,b)=>s+(b.questions?.length||0),0);ctrl.textContent=`📚 총 ${Object.keys(adminBlocks).length}블록 ${t}문제`;}
 });
 
 // ── 순위 ──
@@ -1218,7 +1315,10 @@ let battleFeed=[];
 let battlesDoneCount=0;
 
 // 시계
+let clockStarted=false;
 function startClock(){
+  if(clockStarted)return;
+  clockStarted=true;
   setInterval(()=>{
     const now=new Date();
     const el=document.getElementById('admin-clock');
@@ -1264,42 +1364,94 @@ function renderAdminDashboard(){
   renderTodayStats();
 }
 
-// TOP5
+// TOP5 + MVP 카드
 function renderDashTop5(){
-  const sorted=[...allPlayers].sort((a,b)=>winRate(b)-winRate(a)||b.correct-a.correct).slice(0,5);
+  // ── 개인 TOP5 (승수 기준) ──
+  const sorted=[...allPlayers].sort((a,b)=>b.wins-a.wins||winRate(b)-winRate(a)||b.correct-a.correct).slice(0,5);
   const el=document.getElementById('dash-top5-individual');
-  if(!el)return;
-  if(!sorted.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:16px;text-align:center;font-size:13px">참가자 없음</div>';return;}
-  const max=winRate(sorted[0])||1;
-  el.innerHTML=sorted.map((p,i)=>`
-    <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
-      <div class="rank-num">${medal(i+1)}</div>
-      <div class="rank-name">${p.name}<span class="rank-team-tag">${p.team}팀</span></div>
-      <div class="rank-stats">
-        <div class="rank-stat"><span class="val" style="color:#60A5FA">${winRate(p).toFixed(0)}%</span><span class="lbl">승률</span></div>
-        <div class="rank-stat"><span class="val" style="color:#4ADE80">${p.correct}</span><span class="lbl">정답</span></div>
-        <div class="rank-stat"><span class="val">${p.battleCount}</span><span class="lbl">대결</span></div>
-      </div>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${winRate(p)/max*100}%"></div></div>
-    </div>`).join('');
+  if(el){
+    if(!sorted.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);padding:16px;text-align:center;font-size:13px">참가자 없음</div>';}
+    else{
+      const max=sorted[0].wins||1;
+      el.innerHTML=sorted.map((p,i)=>`
+        <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+          <div class="rank-num">${medal(i+1)}</div>
+          <div class="rank-name">${p.name}<span class="rank-team-tag">${p.team}팀</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><span class="val" style="color:#FBBF24">${p.wins}</span><span class="lbl">승</span></div>
+            <div class="rank-stat"><span class="val" style="color:#60A5FA">${winRate(p).toFixed(0)}%</span><span class="lbl">승률</span></div>
+            <div class="rank-stat"><span class="val">${p.battleCount}</span><span class="lbl">대결</span></div>
+          </div>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${p.wins/max*100}%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></div></div>
+        </div>`).join('');
+    }
+  }
 
-  // 팀 TOP5
+  // ── 최다 대결 TOP5 (승패 무관) ──
+  const byBattle=[...allPlayers].sort((a,b)=>b.battleCount-a.battleCount||b.wins-a.wins).slice(0,5);
+  const elA=document.getElementById('dash-top5-active');
+  if(elA){
+    if(!byBattle.length){elA.innerHTML='<div style="color:rgba(255,255,255,.3);padding:16px;text-align:center;font-size:13px">참가자 없음</div>';}
+    else{
+      const maxB=byBattle[0].battleCount||1;
+      elA.innerHTML=byBattle.map((p,i)=>`
+        <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+          <div class="rank-num">${medal(i+1)}</div>
+          <div class="rank-name">${p.name}<span class="rank-team-tag">${p.team}팀</span></div>
+          <div class="rank-stats">
+            <div class="rank-stat"><span class="val" style="color:#A78BFA">${p.battleCount}</span><span class="lbl">대결</span></div>
+            <div class="rank-stat"><span class="val" style="color:#FBBF24">${p.wins}</span><span class="lbl">승</span></div>
+            <div class="rank-stat"><span class="val">${p.losses}</span><span class="lbl">패</span></div>
+          </div>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${p.battleCount/maxB*100}%;background:linear-gradient(90deg,#8B5CF6,#A78BFA)"></div></div>
+        </div>`).join('');
+    }
+  }
+
+  // ── MVP 칭찬 카드 ──
+  const winnerEl=document.getElementById('mvp-winner');
+  const activeEl=document.getElementById('mvp-active');
+  if(winnerEl){
+    const top=[...allPlayers].filter(p=>p.battleCount>0).sort((a,b)=>b.wins-a.wins||winRate(b)-winRate(a))[0];
+    if(top&&top.wins>0){
+      winnerEl.innerHTML=`
+        <div style="font-size:30px;font-weight:900;line-height:1.1">${top.name}</div>
+        <div style="font-size:14px;opacity:.9;margin-top:4px">${top.team}팀 · ${top.id}번</div>
+        <div style="font-size:15px;font-weight:700;margin-top:8px;background:rgba(255,255,255,.2);border-radius:8px;padding:6px 12px;display:inline-block">
+          🏆 ${top.wins}승 · 승률 ${winRate(top).toFixed(0)}%
+        </div>`;
+    } else { winnerEl.innerHTML='<div style="font-size:14px;opacity:.7">아직 승리 기록 없음</div>'; }
+  }
+  if(activeEl){
+    const top=[...allPlayers].sort((a,b)=>b.battleCount-a.battleCount||b.wins-a.wins)[0];
+    if(top&&top.battleCount>0){
+      activeEl.innerHTML=`
+        <div style="font-size:30px;font-weight:900;line-height:1.1">${top.name}</div>
+        <div style="font-size:14px;opacity:.9;margin-top:4px">${top.team}팀 · ${top.id}번</div>
+        <div style="font-size:15px;font-weight:700;margin-top:8px;background:rgba(255,255,255,.2);border-radius:8px;padding:6px 12px;display:inline-block">
+          🔥 ${top.battleCount}회 대결 진행!
+        </div>`;
+    } else { activeEl.innerHTML='<div style="font-size:14px;opacity:.7">아직 대결 기록 없음</div>'; }
+  }
+
+  // ── 팀 TOP5 ──
   const teams=buildTeams();
   const tSorted=teams.sort((a,b)=>b.avgWR-a.avgWR).slice(0,5);
   const el2=document.getElementById('dash-top5-team');
-  if(!el2)return;
-  const tMax=tSorted[0]?.avgWR||1;
-  el2.innerHTML=tSorted.map((t,i)=>`
-    <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
-      <div class="rank-num">${medal(i+1)}</div>
-      <div class="rank-name">${t.team}팀</div>
-      <div class="rank-stats">
-        <div class="rank-stat"><span class="val" style="color:#60A5FA">${t.avgWR.toFixed(0)}%</span><span class="lbl">평균승률</span></div>
-        <div class="rank-stat"><span class="val" style="color:#4ADE80">${t.correct}</span><span class="lbl">정답합</span></div>
-        <div class="rank-stat"><span class="val">${t.members.length}</span><span class="lbl">인원</span></div>
-      </div>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${t.avgWR/tMax*100}%;background:linear-gradient(90deg,#10B981,#3B82F6)"></div></div>
-    </div>`).join('');
+  if(el2){
+    const tMax=tSorted[0]?.avgWR||1;
+    el2.innerHTML=tSorted.map((t,i)=>`
+      <div class="rank-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+        <div class="rank-num">${medal(i+1)}</div>
+        <div class="rank-name">${t.team}팀</div>
+        <div class="rank-stats">
+          <div class="rank-stat"><span class="val" style="color:#60A5FA">${t.avgWR.toFixed(0)}%</span><span class="lbl">평균승률</span></div>
+          <div class="rank-stat"><span class="val" style="color:#4ADE80">${t.correct}</span><span class="lbl">정답합</span></div>
+          <div class="rank-stat"><span class="val">${t.members.length}</span><span class="lbl">인원</span></div>
+        </div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${t.avgWR/tMax*100}%;background:linear-gradient(90deg,#10B981,#3B82F6)"></div></div>
+      </div>`).join('');
+  }
 }
 
 // 최근 대결
@@ -1462,11 +1614,15 @@ function renderTodayStats(){
 }
 
 
-socket.on('adminQuestions',(db)=>{
-  adminQuizDB=db;
-  renderQList(currentQTab);
+socket.on('adminQuestions',({blocks,activeBlocks})=>{
+  adminBlocks=blocks||{};
+  if(activeBlocks)currentActiveBlocks=activeBlocks.slice();
+  renderBlockToggles();
+  renderPreviewSelect();
+  renderBlockPreview();
   const ctrl=document.getElementById('ctrl-total-q');
-  if(ctrl)ctrl.textContent=`📚 총 문제: OX ${db[1]?.length||0}개 / 3지 ${db[2]?.length||0}개 / 4지 ${db[3]?.length||0}개`;
+  const total=Object.values(adminBlocks).reduce((s,b)=>s+(b.questions?.length||0),0);
+  if(ctrl)ctrl.textContent=`📚 총 ${Object.keys(adminBlocks).length}블록 ${total}문제`;
 });
 socket.on('adminMsg',(msg)=>{
   const box=document.getElementById('admin-msg-box');
@@ -1474,183 +1630,85 @@ socket.on('adminMsg',(msg)=>{
   showNotif(msg);
 });
 
-function renderQList(sector){
-  const wrap=document.getElementById('q-list-wrap');
-  if(!wrap)return;
-  const qs=adminQuizDB[sector];
-  [1,2,3].forEach(i=>{
-    const c=document.getElementById(`qtab-${i}-count`);
-    if(c)c.textContent=`(${adminQuizDB[i]?.length||0})`;
-  });
-  const titleEl=document.getElementById('q-list-title');
-  const names={1:'⭕ OX 퀴즈',2:'3️⃣ 3지 선다',3:'4️⃣ 4지 선다'};
-  if(titleEl)titleEl.textContent=names[sector]+' 문제 목록';
-  const countEl=document.getElementById('q-count');
-  if(!qs||qs.length===0){
-    wrap.innerHTML='<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">문제가 없습니다. 추가하거나 엑셀을 업로드하세요.</div>';
-    if(countEl)countEl.textContent='0문제';return;
+// 활성 블록 변경 브로드캐스트 수신 (모든 화면 반영)
+socket.on('activeBlocksChanged',({activeBlocks,label,poolCount})=>{
+  currentActiveBlocks=activeBlocks.slice();
+  appliedActiveBlocks=activeBlocks.slice();
+  renderBlockToggles();
+  const lbl=document.getElementById('active-blocks-label');
+  if(lbl)lbl.textContent=label||'전체';
+  const cnt=document.getElementById('active-pool-count');
+  if(cnt)cnt.textContent=`출제풀 ${poolCount}문제`;
+  // 로비 안내 갱신
+  const lobbyRange=document.getElementById('lobby-range-label');
+  if(lobbyRange)lobbyRange.textContent=label||'전체 범위';
+});
+
+// 블록 토글 버튼 렌더
+function renderBlockToggles(){
+  const grid=document.getElementById('block-toggle-grid');
+  if(!grid)return;
+  const nos=Object.keys(adminBlocks).map(Number).sort((a,b)=>a-b);
+  grid.innerHTML=nos.map(no=>{
+    const on=currentActiveBlocks.includes(no);
+    const b=adminBlocks[no];
+    return `<div class="block-toggle ${on?'on':''}" onclick="toggleBlock(${no})">
+      <div class="bt-no">${no}번</div>
+      <div class="bt-label">${b.label||''}</div>
+    </div>`;
+  }).join('');
+}
+function toggleBlock(no){
+  const i=currentActiveBlocks.indexOf(no);
+  if(i>=0)currentActiveBlocks.splice(i,1);
+  else currentActiveBlocks.push(no);
+  currentActiveBlocks.sort((a,b)=>a-b);
+  renderBlockToggles();
+}
+function quickSelectBlocks(mode){
+  const nos=Object.keys(adminBlocks).map(Number).sort((a,b)=>a-b);
+  if(mode==='all')currentActiveBlocks=nos.slice();
+  else if(mode==='none')currentActiveBlocks=[];
+  else{
+    const [a,b]=mode.split('-').map(Number);
+    currentActiveBlocks=nos.filter(n=>n>=a&&n<=b);
   }
-  if(countEl)countEl.textContent=`총 ${qs.length}문제`;
-  const colors={1:'#10B981',2:'#F59E0B',3:'#3B82F6'};
-  const fc=colors[sector];
-  wrap.innerHTML=qs.map((q,i)=>`
+  renderBlockToggles();
+}
+function applyActiveBlocks(){
+  if(currentActiveBlocks.length===0){
+    if(!confirm('선택된 블록이 없습니다. 전체 범위로 출제할까요?'))return;
+  }
+  socket.emit('adminSetActiveBlocks',currentActiveBlocks);
+}
+
+// 미리보기 셀렉트 + 목록
+function renderPreviewSelect(){
+  const sel=document.getElementById('preview-block-select');
+  if(!sel)return;
+  const nos=Object.keys(adminBlocks).map(Number).sort((a,b)=>a-b);
+  const cur=sel.value;
+  sel.innerHTML=nos.map(no=>`<option value="${no}">블록 ${no}번 · ${adminBlocks[no].label} (${adminBlocks[no].questions.length}문제)</option>`).join('');
+  if(cur)sel.value=cur;
+}
+function renderBlockPreview(){
+  const sel=document.getElementById('preview-block-select');
+  const wrap=document.getElementById('q-list-wrap');
+  const countEl=document.getElementById('q-count');
+  if(!sel||!wrap)return;
+  const no=parseInt(sel.value);
+  const b=adminBlocks[no];
+  if(!b||!b.questions){wrap.innerHTML='<div style="color:rgba(255,255,255,.3);padding:24px;text-align:center">문제 없음</div>';return;}
+  if(countEl)countEl.textContent=`${b.label} · ${b.questions.length}문제`;
+  wrap.innerHTML=b.questions.map((q,i)=>`
     <div class="q-card-dark">
-      <span style="background:${fc};color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700;display:inline-block;margin-bottom:8px">Q${i+1}</span>
+      <span style="background:#3B82F6;color:#fff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700;display:inline-block;margin-bottom:8px">Q${i+1}</span>
       <div class="q-text">${q.q}</div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
         ${q.opts.map(o=>`<span style="padding:3px 10px;border-radius:8px;font-size:12px;font-weight:600;background:${o===q.ans?'rgba(74,222,128,.15)':'rgba(255,255,255,.06)'};color:${o===q.ans?'#4ADE80':'rgba(255,255,255,.6)'};border:1px solid ${o===q.ans?'rgba(74,222,128,.4)':'transparent'}">${o===q.ans?'✅ ':''}${o}</span>`).join('')}
       </div>
       <div class="q-exp-dark">💡 ${q.exp}</div>
-      <div style="display:flex;gap:6px">
-        <button style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60A5FA;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer" onclick="openEditModal(${sector},${i})">✏️ 수정</button>
-        <button style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#EF4444;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer" onclick="deleteQuestion(${sector},${i})">🗑 삭제</button>
-      </div>
     </div>`).join('');
-}
-
-function showQTab(n){
-  currentQTab=n;
-  [1,2,3].forEach(i=>{
-    document.getElementById(`qtab-${i}`)?.classList.toggle('active',i===n);
-  });
-  renderQList(n);
-}
-function openAddModal(){
-  document.getElementById('modal-mode').value='add';
-  document.getElementById('modal-title').textContent='➕ 문제 추가';
-  document.getElementById('modal-q').value='';
-  document.getElementById('modal-ans').value='';
-  document.getElementById('modal-exp').value='';
-  document.getElementById('modal-sector-select').value=currentQTab;
-  updateModalOpts();
-  document.getElementById('q-modal').classList.add('show');
-}
-
-// 문제 수정
-function openEditModal(sector,index){
-  const q=adminQuizDB[sector][index];if(!q)return;
-  document.getElementById('modal-mode').value='edit';
-  document.getElementById('modal-sector').value=sector;
-  document.getElementById('modal-index').value=index;
-  document.getElementById('modal-title').textContent='✏️ 문제 수정';
-  document.getElementById('modal-sector-select').value=sector;
-  document.getElementById('modal-sector-select').disabled=true;
-  document.getElementById('modal-q').value=q.q;
-  document.getElementById('modal-ans').value=q.ans;
-  document.getElementById('modal-exp').value=q.exp;
-  updateModalOpts(q.opts);
-  document.getElementById('q-modal').classList.add('show');
-}
-
-function updateModalOpts(existingOpts){
-  const sector=parseInt(document.getElementById('modal-sector-select').value);
-  const n=sector===1?2:sector===2?3:4;
-  const labels=sector===1?['O','X']:['보기1','보기2','보기3','보기4'];
-  const wrap=document.getElementById('modal-opts-wrap');
-  wrap.innerHTML='<div class="label">보기</div>';
-  for(let i=0;i<n;i++){
-    const inp=document.createElement('input');
-    inp.type='text';inp.id=`modal-opt-${i}`;
-    inp.placeholder=labels[i];
-    if(existingOpts&&existingOpts[i])inp.value=existingOpts[i];
-    else if(sector===1)inp.value=labels[i];
-    wrap.appendChild(inp);
-  }
-}
-
-function submitModal(){
-  const mode=document.getElementById('modal-mode').value;
-  const sector=parseInt(document.getElementById('modal-sector-select').value);
-  const n=sector===1?2:sector===2?3:4;
-  const opts=[];
-  for(let i=0;i<n;i++){
-    const v=document.getElementById(`modal-opt-${i}`)?.value.trim();
-    if(!v)return showNotif(`⚠️ 보기${i+1}을 입력해주세요`);
-    opts.push(v);
-  }
-  const q={
-    q:document.getElementById('modal-q').value.trim(),
-    opts,
-    ans:document.getElementById('modal-ans').value.trim(),
-    exp:document.getElementById('modal-exp').value.trim()
-  };
-  if(!q.q)return showNotif('⚠️ 문제를 입력해주세요');
-  if(!q.ans)return showNotif('⚠️ 정답을 입력해주세요');
-  if(!opts.includes(q.ans))return showNotif('⚠️ 정답이 보기에 포함되어야 합니다');
-
-  if(mode==='add'){socket.emit('adminAddQuestion',{sector,q});}
-  else{
-    const index=parseInt(document.getElementById('modal-index').value);
-    socket.emit('adminEditQuestion',{sector,index,q});
-  }
-  closeModal();
-}
-
-function closeModal(){
-  document.getElementById('q-modal').classList.remove('show');
-  document.getElementById('modal-sector-select').disabled=false;
-}
-
-function deleteQuestion(sector,index){
-  const q=adminQuizDB[sector][index];
-  if(!q)return;
-  if(!confirm(`삭제하시겠습니까?\n\n"${q.q.slice(0,40)}..."`))return;
-  socket.emit('adminDeleteQuestion',{sector,index});
-}
-
-// ── 엑셀 업로드 ──
-function handleExcelUpload(event){
-  const file=event.target.files[0];if(!file)return;
-  const statusEl=document.getElementById('upload-status');
-  statusEl.style.display='block';statusEl.textContent='📊 파일 읽는 중...';
-
-  const reader=new FileReader();
-  reader.onload=(e)=>{
-    try{
-      const data=new Uint8Array(e.target.result);
-      const wb=XLSX.read(data,{type:'array'});
-      const newDB={1:[],2:[],3:[]};
-
-      wb.SheetNames.forEach(sheetName=>{
-        const ws=wb.Sheets[sheetName];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-        // 4행부터 데이터 (1:제목,2:안내,3:헤더)
-        const dataRows=rows.slice(3).filter(r=>r[1]&&String(r[1]).trim());
-
-        if(sheetName.includes('OX')||sheetName.includes('1')){
-          dataRows.forEach(r=>{
-            const q=String(r[1]).trim(),ans=String(r[2]).trim().toUpperCase(),exp=String(r[3]||'').trim();
-            if(q&&(ans==='O'||ans==='X'))newDB[1].push({q,opts:['O','X'],ans,exp});
-          });
-        } else if(sheetName.includes('3지')||sheetName.includes('2')){
-          dataRows.forEach(r=>{
-            const q=String(r[1]).trim();
-            const opts=[r[2],r[3],r[4]].map(o=>String(o||'').trim()).filter(Boolean);
-            const ans=String(r[5]||'').trim(),exp=String(r[6]||'').trim();
-            if(q&&opts.length>=2&&ans)newDB[2].push({q,opts,ans,exp});
-          });
-        } else if(sheetName.includes('4지')||sheetName.includes('3')){
-          dataRows.forEach(r=>{
-            const q=String(r[1]).trim();
-            const opts=[r[2],r[3],r[4],r[5]].map(o=>String(o||'').trim()).filter(Boolean);
-            const ans=String(r[6]||'').trim(),exp=String(r[7]||'').trim();
-            if(q&&opts.length>=2&&ans)newDB[3].push({q,opts,ans,exp});
-          });
-        }
-      });
-
-      const total=newDB[1].length+newDB[2].length+newDB[3].length;
-      if(total===0){statusEl.textContent='❌ 문제를 찾을 수 없습니다. 서식 파일을 확인하세요.';return;}
-
-      statusEl.textContent=`✅ OX:${newDB[1].length}개 / 3지:${newDB[2].length}개 / 4지:${newDB[3].length}개 → 서버에 적용 중...`;
-      socket.emit('adminImportQuestions',newDB);
-      setTimeout(()=>{statusEl.style.display='none';},4000);
-    }catch(err){
-      statusEl.textContent='❌ 파일 읽기 실패: '+err.message;
-    }
-  };
-  reader.readAsArrayBuffer(file);
-  event.target.value='';
 }
 
 function adminResetScores(){if(!confirm('점수를 초기화하시겠습니까?\n(참가자 등록은 유지됩니다)'))return;socket.emit('resetScores');}
@@ -1679,13 +1737,12 @@ socket.on('restartCountdown',({label, sec})=>{
 
 // 재시작 완료 수신
 socket.on('serverRestart',({label})=>{
-  // 오버레이 숨기기
   const overlay = document.getElementById('restart-overlay');
   if(overlay)overlay.style.display='none';
-  // 상태 초기화
   myId=null;myName='';myTeam=0;currentBattle=null;
   allPlayers=[];battleFeed=[];battlesDoneCount=0;
   isFinalStage=false;
+  clearSession();
   setFinalStageUI(false);
   showNotif(`✅ ${label} 완료! 다시 등록해주세요.`, 4000);
   showScreen('screen-welcome');
@@ -1698,6 +1755,7 @@ socket.on('scoresReset',()=>{
 socket.on('serverReset',()=>{
   showNotif('✅ 전체 초기화되었습니다.');
   myId=null;myName='';myTeam=0;
+  clearSession();
   setFinalStageUI(false);
   showScreen('screen-welcome');
 });
@@ -1896,18 +1954,33 @@ socket.on('adminAuthResult',({success})=>{
   if(success){
     isAdmin=true;
     showAdminFAB(true);
-    showScreen('screen-admin');
-    showNotif('✅ 관리자로 로그인 되었습니다.');
     socket.emit('adminGetQuestions');
     socket.emit('getRankings');
     socket.emit('getSystemState');
     startClock();
-  } else showNotif('❌ 비밀번호가 틀렸습니다.');
+    if(adminManualLogin){
+      // 수동 로그인일 때만 화면 전환 + 알림
+      showScreen('screen-admin');
+      showNotif('✅ 관리자로 로그인 되었습니다.');
+      adminManualLogin=false;
+    }
+    // 자동 재인증이면 현재 보던 화면 유지 (대시보드 계속 표시)
+  } else {
+    if(adminManualLogin){ showNotif('❌ 비밀번호가 틀렸습니다.'); adminManualLogin=false; }
+    try{ localStorage.removeItem('kmg_adminPw'); }catch(e){}
+  }
 });
 
-socket.on('systemState',({finalStage,stageActive:sa,stageRemaining:sr,stageDuration:sd,lockNew:ln})=>{
+socket.on('systemState',({finalStage,stageActive:sa,stageRemaining:sr,stageDuration:sd,lockNew:ln,activeBlocks,blockLabel})=>{
   setFinalStageUI(finalStage);
   if(sa!==undefined) updateTimerUI_stage(sa,sr,sd,ln);
+  if(activeBlocks){
+    currentActiveBlocks=activeBlocks.slice();
+    appliedActiveBlocks=activeBlocks.slice();
+    const lobbyRange=document.getElementById('lobby-range-label');
+    if(lobbyRange)lobbyRange.textContent=blockLabel||'전체 범위';
+    renderBlockToggles();
+  }
 });
 socket.on('finalStageChanged',({active})=>setFinalStageUI(active));
 
